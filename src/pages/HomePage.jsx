@@ -15,44 +15,26 @@ export default function HomePage() {
       {/* Navbar */}
       <Navbar />
 
-      {/* Hero Section (tanpa parallax, tetap muncul saat scroll) */}
-      <section className="relative w-full h-screen flex items-center justify-center text-center text-white">
-        {/* Gambar latar hero */}
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${heroImage})`,
-            backgroundPosition: "center center",
-            backgroundSize: "cover",
-          }}
-        ></div>
-
-        {/* Overlay hitam transparan */}
-        <div className="absolute inset-0 bg-black bg-opacity-40"></div>
-
-        {/* Konten hero */}
-        <div className="relative z-10 px-6">
-          <h1 className="text-4xl md:text-6xl font-extrabold drop-shadow-lg">
-            Centre for Sustainable Energy & Resources Management
-          </h1>
-          <p className="mt-4 text-lg md:text-2xl max-w-2xl mx-auto text-gray-100 font-medium">
-            Promoting Renewable Energy, Biodiversity, and Sustainable Futures.
-          </p>
-          <a
-            href="#profile"
-            className="mt-8 inline-block bg-[#1E9C2D] hover:bg-green-600 text-white font-semibold py-3 px-8 rounded-full transition duration-300 shadow-lg"
-          >
-            Learn More
-          </a>
+      {/* Hero Section */}
+      <section className="relative w-full pt-20 pb-8 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div
+            className="w-full h-[55vh] md:h-[65vh] lg:h-[75vh] bg-cover bg-center rounded-3xl shadow-2xl border border-gray-200"
+            style={{
+              backgroundImage: `url(${heroImage})`,
+              backgroundPosition: "center center",
+              backgroundSize: "cover",
+            }}
+          ></div>
         </div>
       </section>
 
       {/* Profile Section */}
-      <section id="profile" className="max-w-6xl mx-auto px-6 py-20">
-        <h2 className="text-3xl font-bold mb-6 text-[#1E9C2D] text-center">
-          About C-SERM
+      <section id="profile" className="max-w-6xl mx-auto px-6 py-16">
+        <h2 className="text-3xl font-bold mb-6 text-[#1E9C2D]">
+          CENTRE FOR SUSTAINABLE ENERGY & RESOURCES MANAGEMENT
         </h2>
-        <p className="text-gray-700 leading-relaxed text-justify text-lg">
+        <p className="text-gray-700 leading-relaxed text-justify">
           C-SERM was established at Universitas Nasional in June 2014 based on
           the decree of Rector No. 136 year 2014. It aims to be an
           internationally recognized centre for the assessment, development, and
@@ -64,13 +46,13 @@ export default function HomePage() {
         </p>
       </section>
 
-      {/* Aims Section */}
-      <section id="aims" className="bg-gray-50 py-20">
+      {/* C-SERM’s Aims */}
+      <section id="aims" className="bg-gray-50 py-16">
         <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl font-bold mb-12 text-[#1E9C2D] text-center">
-            C-SERM's Aims
+          <h2 className="text-2xl font-bold mb-10 text-[#1E9C2D]">
+            C-SERM'S AIMS
           </h2>
-          <div className="grid md:grid-cols-3 gap-10">
+          <div className="grid md:grid-cols-3 gap-8">
             {[aim1, aim2, aim3].map((img, index) => {
               const texts = [
                 "Identifying and assessing renewable energy resources and appropriate technology at local levels in the remote area of Indonesia supporting sustainable livelihoods of local communities.",
@@ -80,17 +62,15 @@ export default function HomePage() {
               return (
                 <div
                   key={index}
-                  className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
+                  className="bg-[#1E9C2D] text-white shadow-lg rounded-xl overflow-hidden transform hover:scale-105 transition duration-300"
                 >
                   <img
                     src={img}
                     alt={`Aim ${index + 1}`}
-                    className="w-full h-56 object-cover"
+                    className="w-full h-64 object-cover"
                   />
-                  <div className="p-6">
-                    <p className="text-gray-700 font-medium text-justify">
-                      {texts[index]}
-                    </p>
+                  <div className="p-5 text-sm md:text-base">
+                    <p>{texts[index]}</p>
                   </div>
                 </div>
               );
@@ -102,58 +82,57 @@ export default function HomePage() {
       {/* Vision & Mission */}
       <section
         id="vision"
-        className="max-w-6xl mx-auto px-6 py-20 grid md:grid-cols-2 gap-10 items-center"
+        className="max-w-6xl mx-auto px-6 py-16 grid md:grid-cols-2 gap-10 items-center"
       >
         <div>
-          <h2 className="text-3xl font-bold mb-6 text-[#1E9C2D]">
+          <h2 className="text-2xl font-bold mb-6 text-[#1E9C2D]">
             Vision & Mission
           </h2>
-          <div className="space-y-6">
-            <div>
-              <h3 className="font-bold text-lg text-[#1E9C2D] mb-2">Vision</h3>
-              <p className="text-gray-800 leading-relaxed">
-                A sustainable future for the planet, where renewable energy is
-                utilized efficiently and ecosystem services are protected for
-                the benefit of the people.
-              </p>
-            </div>
-            <div>
-              <h3 className="font-bold text-lg text-[#1E9C2D] mb-2">Mission</h3>
-              <p className="text-gray-800 leading-relaxed">
-                Promote renewable energy and biodiversity, and protect ecosystem
-                services through a multidisciplinary approach which takes into
-                account human needs.
-              </p>
-            </div>
+
+          <div className="mb-6">
+            <h3 className="font-bold text-lg text-[#1E9C2D] mb-2">Vision</h3>
+            <p className="text-gray-800 leading-relaxed font-semibold">
+              A sustainable future for the planet, where renewable energy is
+              utilized with efficiency and ecosystem services are protected for
+              the benefit of the people.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-lg text-[#1E9C2D] mb-2">Mission</h3>
+            <p className="text-gray-800 leading-relaxed font-semibold">
+              Promote renewable energy and biodiversity, and protect ecosystem
+              services through a multidisciplinary approach which takes into
+              account human needs.
+            </p>
           </div>
         </div>
 
-        <div className="flex justify-center">
+        <div>
           <img
             src={visionImage}
             alt="Vision & Mission"
-            className="rounded-2xl shadow-lg w-full max-w-md object-cover"
+            className="rounded-xl shadow-lg w-full h-auto object-cover"
           />
         </div>
       </section>
 
       {/* Projects Section */}
-      <section id="projects" className="bg-gray-50 py-20">
+      <section id="projects" className="bg-gray-50 py-16">
         <ProjectPage />
       </section>
 
       {/* Publications Section */}
-      <section id="publications" className="bg-white py-20">
+      <section id="publications" className="bg-white py-16">
         <PublicationPage />
       </section>
 
       {/* Our Team Section */}
-      <section id="ourteam" className="bg-gray-50 py-20">
+      <section id="ourteam" className="bg-gray-50 py-16">
         <OurTeamPage />
       </section>
 
-      {/* News Section */}
-      <section id="news" className="bg-white py-20">
+      <section id="news" className="bg-white py-16">
         <NewsPage />
       </section>
     </div>
