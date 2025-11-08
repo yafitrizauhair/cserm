@@ -1,9 +1,9 @@
 import React from "react";
 import Navbar from "../components/navbar";
-import newsHero from "../assets/grass.jpg";
-import news1 from "../assets/news1.png";
-import news2 from "../assets/news2.png";
-import news3 from "../assets/news3.png";
+import newsHero from "../assets/recentNews.jpg";
+import news1 from "../assets/news1.jpg";
+import news2 from "../assets/news2.jpg";
+import news3 from "../assets/news3.jpg";
 
 export default function NewsPage() {
   const newsList = [

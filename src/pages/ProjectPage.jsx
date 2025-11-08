@@ -1,7 +1,7 @@
 import React from "react";
-import project3 from "../assets/project3.png";
-import project4 from "../assets/project4.png";
-import hero from "../assets/Subtract.jpg";
+import project3 from "../assets/project1.jpg";
+import project4 from "../assets/project2.jpg";
+import hero from "../assets/orang1.jpg";
 
 const ProjectPage = () => {
 

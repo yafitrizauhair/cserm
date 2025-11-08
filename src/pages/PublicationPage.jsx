@@ -1,5 +1,5 @@
 import React from "react";
-import publicationHero from "../assets/mancing.png";
+import publicationHero from "../assets/foto1.jpg";
 
 // 📚 Data publikasi per tahun
 const publications = {
@@ -97,7 +97,7 @@ const PublicationPage = () => {
   return (
     <div className="w-full min-h-screen bg-gray-50">
       {/*  Hero Section */}
-      <div className="relative w-full h-[60vh] md:h-[70vh] flex items-center justify-center overflow-hidden">
+      <div className="relative w-full h-[80vh] md:h-[120vh] flex items-center justify-center overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 w-full h-full">
           <div
             className="w-full h-full bg-cover bg-center rounded-3xl shadow-2xl"
