@@ -3,7 +3,7 @@ function doPost(e) {
   
     const data = JSON.parse(e.postData.contents);
 
-    const sheet = SpreadsheetApp.openById("ganti id anda di sini")
+    const sheet = SpreadsheetApp.openById("ganti id anda")
       .getSheetByName("Sheet1");
 
     sheet.appendRow([
