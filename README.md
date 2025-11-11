@@ -156,69 +156,8 @@ This project is licensed under the MIT License — feel free to use and modify f
 NOTE
 
 untuk contact us ganti dibagian
-const scriptURL =
-      "ganti dengan url google apps anda"; 
-      menjadi punya anda
-
-
-  caranyaa buka google apps script dan buat new project dan masukan:
+buka file googleScript.js copy semua ke google apps script
   
-  function doPost(e) {
-  try {
-    // Parsing data JSON dari body
-    const data = JSON.parse(e.postData.contents);
-
-    // Buka spreadsheet dan pilih sheet
-    const sheet = SpreadsheetApp.openById("1XrAcaWqTOseL1Xv1kEbe2xUhek6Pgc41oBwIWZxIAU4")
-      .getSheetByName("Sheet1");
-
-    // Tambahkan data ke baris baru
-    sheet.appendRow([
-      new Date(),
-      data.name || "",
-      data.email || "",
-      data.subject || "",
-      data.message || "",
-    ]);
-
-    // Return response JSON
-    const result = {
-      status: "success",
-      message: "Pesan berhasil dikirim!",
-    };
-
-    return ContentService
-      .createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    const errorResult = {
-      status: "error",
-      message: err.message,
-    };
-
-    return ContentService
-      .createTextOutput(JSON.stringify(errorResult))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-// ✅ Tangani preflight CORS (OPTIONS)
-function doOptions() {
-  return ContentService
-    .createTextOutput("")
-    .setMimeType(ContentService.MimeType.TEXT)
-    .setHeader("Access-Control-Allow-Origin", "*")
-    .setHeader("Access-Control-Allow-Methods", "POST, OPTIONS")
-    .setHeader("Access-Control-Allow-Headers", "Content-Type");
-}
-
-// ✅ Tambahkan CORS di semua response (POST/GET)
-function doGet() {
-  return ContentService
-    .createTextOutput("Contact API aktif")
-    .setMimeType(ContentService.MimeType.TEXT)
-    .setHeader("Access-Control-Allow-Origin", "*");
-}
 
 
 setelah itu buka google spreedsheet ganti id cari bagian
