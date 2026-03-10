@@ -1,151 +1,221 @@
-import React from "react";
+import { useEffect, useMemo, useState } from "react";
+import axios from "axios";
+import Navbar from "../components/navbar";
 import publicationHero from "../assets/foto1.jpg";
 
-// 📚 Data publikasi per tahun
-const publications = {
-  2017: [
-    {
-      title: "Community-based Conservation Approaches",
-      authors: "Arifin et al., Conservation Biology",
-    },
-    {
-      title: "Energy Efficiency in Developing Countries",
-      authors: "Nguyen et al., Renewable and Sustainable Energy Reviews",
-    },
-  ],
-  2018: [
-    {
-      title: "Sustainable Fisheries Management",
-      authors: "Putra et al., Fisheries Research",
-    },
-    {
-      title: "Big Data in Environmental Science",
-      authors: "Johnson et al., Environmental Research Letters",
-    },
-  ],
-  2019: [
-    {
-      title: "Marine Protected Areas and Local Communities",
-      authors: "Santoso et al., Marine Policy",
-    },
-    {
-      title: "Internet of Things for Smart Agriculture",
-      authors: "Wang et al., Computers and Electronics in Agriculture",
-    },
-  ],
-  2020: [
-    {
-      title: "Climate Change Impacts on Coastal Communities",
-      authors: "Rahman et al., Climate Risk Management",
-    },
-    {
-      title: "Blockchain for Sustainable Supply Chains",
-      authors: "Chen et al., Journal of Cleaner Production",
-    },
-  ],
-  2021: [
-    {
-      title: "Renewable Energy Transitions in Southeast Asia",
-      authors: "Yusuf et al., Energy Policy",
-    },
-    {
-      title: "AI for Environmental Monitoring",
-      authors: "Kim et al., Environmental Modelling & Software",
-    },
-  ],
-  2022: [
-    {
-      title: "Cybersecurity Trends",
-      authors: "Lee et al., Computers & Security",
-    },
-    {
-      title: "Edge Computing Challenges",
-      authors: "Tanaka et al., Future Internet",
-    },
-  ],
-  2023: [
-    {
-      title: "Augmented Reality in Education",
-      authors: "Doe et al., Education Journal",
-    },
-    {
-      title: "Autonomous Vehicles and Safety",
-      authors: "Smith et al., IEEE Transactions",
-    },
-  ],
-  2024: [
-    {
-      title: "Assessing impact risk to tropical marine ecosystems",
-      authors: "Culhane et al., Journal of Applied Ecology",
-    },
-  ],
-  2025: [
-    {
-      title:
-        "Community participation and habitat assessment determine sea cucumber grow-out site suitability in Selayar Islands",
-      authors: "Ainin et al., Aquaculture International",
-    },
-    {
-      title:
-        "Developing a citizen science approach to monitor stranded marine plastics",
-      authors: "Praptiwi et al., CLEAN - Soil, Air, Water",
-    },
-  ],
-};
+const API_BASE_URL = (process.env.REACT_APP_API_URL || "http://localhost:5000").replace(/\/$/, "");
 
-const PublicationPage = () => {
+export default function PublicationPage() {
+  const [rows, setRows] = useState([]);
+  const [meta, setMeta] = useState({ page: 1, totalPages: 1, total: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // UI controls
+  const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("year_desc"); // year_desc | year_asc
+  const [page, setPage] = useState(1);
+  const limit = 10;
+
+  const fetchData = async (nextPage) => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const res = await axios.get(`${API_BASE_URL}/api/publications`, {
+        params: {
+          page: nextPage,
+          limit,
+          sort,
+          search,
+        },
+        timeout: 10000,
+      });
+
+      const data = res.data?.data ?? [];
+      setRows(Array.isArray(data) ? data : []);
+
+      setMeta({
+        page: res.data?.page ?? nextPage,
+        totalPages: res.data?.totalPages ?? 1,
+        total: res.data?.total ?? (Array.isArray(data) ? data.length : 0),
+      });
+    } catch (e) {
+      setError(e?.response?.data?.message || "Gagal memuat data publication");
+      setRows([]);
+      setMeta({ page: 1, totalPages: 1, total: 0 });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 🔁 Fetch ketika page/sort berubah
+  useEffect(() => {
+    fetchData(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, sort]);
+
+  // 🔎 Debounce search: reset page=1 lalu fetch
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setPage(1); // ini otomatis trigger fetch karena page berubah
+    }, 350);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  // Group by year
+  const grouped = useMemo(() => {
+    const map = new Map();
+    for (const p of rows) {
+      const y = p.year ?? "Unknown";
+      if (!map.has(y)) map.set(y, []);
+      map.get(y).push(p);
+    }
+
+    const years = Array.from(map.keys()).sort((a, b) => {
+      const na = Number(a);
+      const nb = Number(b);
+      if (Number.isNaN(na) || Number.isNaN(nb)) return String(b).localeCompare(String(a));
+      return sort === "year_asc" ? na - nb : nb - na;
+    });
+
+    return years.map((year) => ({ year, items: map.get(year) }));
+  }, [rows, sort]);
+
+  const canPrev = meta.page > 1;
+  const canNext = meta.page < meta.totalPages;
+
   return (
     <div className="w-full min-h-screen bg-gray-50">
-      {/*  Hero Section */}
-      <div className="relative w-full h-[80vh] md:h-[120vh] flex items-center justify-center overflow-hidden">
+      <Navbar />
+
+      {/* Hero */}
+      <div className="relative w-full h-[55vh] md:h-[70vh] flex items-center justify-center overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 w-full h-full">
           <div
             className="w-full h-full bg-cover bg-center rounded-3xl shadow-2xl"
             style={{ backgroundImage: `url(${publicationHero})` }}
-          >
-          </div>
+          />
         </div>
       </div>
 
-      {/* 📄 Content Section */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
-        <p className="text-gray-600 mb-12 text-center max-w-3xl mx-auto text-lg">
-          Lorem ipsum dolor sit amet consectetur, adipisicing elit. Recusandae numquam eveniet molestias earum eum pariatur distinctio blanditiis praesentium eos dolor odit, quasi nobis. Eos reprehenderit nesciunt ad sit obcaecati nisi!
-        </p>
+      {/* Content */}
+      <section className="max-w-6xl mx-auto px-6 py-12">
+        <div className="text-center mb-10">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-[#1e9c2d]">
+            Publications
+          </h1>
+          <p className="text-gray-600 mt-3 max-w-3xl mx-auto text-lg">
+            Daftar publikasi C-SERM UNAS berdasarkan tahun.
+          </p>
+        </div>
 
-        {/* 📘 List per tahun */}
-        <div className="space-y-10">
-          {Object.entries(publications)
-            .reverse() 
-            .map(([year, papers]) => (
+        {/* Controls */}
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 mb-8 flex flex-col md:flex-row gap-3 md:items-center">
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Cari judul / author / journal / doi..."
+            className="flex-1 border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#1e9c2d]"
+          />
+
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value)}
+            className="border border-gray-200 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-[#1e9c2d]"
+          >
+            <option value="year_desc">Tahun (Terbaru)</option>
+            <option value="year_asc">Tahun (Terlama)</option>
+          </select>
+
+          <div className="text-sm text-gray-500">
+            Total: {meta.total}
+          </div>
+        </div>
+
+        {/* Loading / Error */}
+        {loading && (
+          <div className="text-center py-10 text-gray-500">Loading...</div>
+        )}
+
+        {!loading && error && (
+          <div className="text-center py-10 text-red-600">{error}</div>
+        )}
+
+        {/* Grouped by Year */}
+        {!loading && !error && grouped.length > 0 && (
+          <div className="space-y-10">
+            {grouped.map(({ year, items }) => (
               <div
                 key={year}
-                className="bg-white shadow-lg hover:shadow-xl transition-shadow duration-300 rounded-2xl p-8 border border-gray-100"
+                className="bg-white shadow-sm hover:shadow-md transition-shadow duration-300 rounded-2xl p-8 border border-gray-100"
               >
-                <h3 className="text-3xl font-bold mb-5 border-b pb-2 text-[#1E9C2D]">
+                <h3 className="text-3xl font-extrabold mb-6 text-[#1e9c2d] border-b border-[#1e9c2d]/30 pb-2">
                   {year}
                 </h3>
-                <ul className="list-disc pl-6 text-gray-800 space-y-3">
-                  {papers.map((pub, idx) => (
-                    <li
-                      key={idx}
-                      className="leading-relaxed hover:translate-x-1 transition-transform"
-                    >
-                      <span className="font-medium text-[#1E9C2D]">
-                        {pub.title}
-                      </span>
-                      <span className="block text-gray-500 text-sm">
-                        {pub.authors}
-                      </span>
+
+                <ul className="list-disc pl-6 text-gray-800 space-y-4">
+                  {items.map((p) => (
+                    <li key={p.id} className="leading-relaxed">
+                      <div>
+                        <span className="font-medium text-gray-900">{p.title}</span>
+                        <span className="text-gray-600"> — {p.authors}</span>
+                        {p.journal && (
+                          <span className="italic text-gray-500"> ({p.journal})</span>
+                        )}
+                      </div>
+
+                      {p.url && (
+                        <a
+                          href={p.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-block mt-1 text-sm text-[#1e9c2d] hover:underline break-all"
+                        >
+                          {p.url}
+                        </a>
+                      )}
                     </li>
                   ))}
                 </ul>
               </div>
             ))}
-        </div>
+          </div>
+        )}
+
+        {!loading && !error && grouped.length === 0 && (
+          <div className="text-center py-10 text-gray-500">
+            Belum ada data publication.
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && !error && meta.totalPages > 1 && (
+          <div className="mt-10 flex items-center justify-center gap-3">
+            <button
+              disabled={!canPrev}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="px-4 py-2 rounded-xl border border-[#1e9c2d] text-[#1e9c2d]
+                         hover:bg-[#1e9c2d] hover:text-white transition disabled:opacity-50"
+            >
+              Prev
+            </button>
+
+            <div className="text-sm text-gray-600">
+              Page <b className="text-[#1e9c2d]">{meta.page}</b> / {meta.totalPages}
+            </div>
+
+            <button
+              disabled={!canNext}
+              onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
+              className="px-4 py-2 rounded-xl border border-[#1e9c2d] text-[#1e9c2d]
+                         hover:bg-[#1e9c2d] hover:text-white transition disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        )}
       </section>
     </div>
   );
-};
-
-export default PublicationPage;
+}

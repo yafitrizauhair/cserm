@@ -1,0 +1,901 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Swal from "sweetalert2";
+import {
+  getProjectsAdmin,
+  createProject,
+  updateProject,
+  deleteProject,
+  getProjectBlocksAdmin,
+  createProjectBlock,
+  updateProjectBlock,
+  deleteProjectBlock,
+  resolveProjectImage,
+} from "../../services/projectService";
+
+const initialProjectForm = {
+  file: null,
+  title: "",
+  slug: "",
+  short_description: "",
+  full_description: "",
+  external_link: "",
+  location: "",
+  project_date: "",
+  is_featured: 0,
+  is_active: 1,
+  order_number: 1,
+};
+
+const initialBlockForm = {
+  file: null,
+  title: "",
+  content: "",
+  layout_type: "text-left-image-right",
+  image_style: "rounded-2xl",
+  order_number: 1,
+  is_active: 1,
+};
+
+const normalizeResponseData = (res) => {
+  if (!res) return null;
+  if (res?.data?.data !== undefined) return res.data.data;
+  if (res?.data !== undefined) return res.data;
+  return res;
+};
+
+export default function ProjectManagement() {
+  const [projects, setProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
+  const [submittingProject, setSubmittingProject] = useState(false);
+
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [blocks, setBlocks] = useState([]);
+  const [loadingBlocks, setLoadingBlocks] = useState(false);
+  const [submittingBlock, setSubmittingBlock] = useState(false);
+
+  const [editProjectId, setEditProjectId] = useState(null);
+  const [currentProjectImage, setCurrentProjectImage] = useState("");
+
+  const [editBlockId, setEditBlockId] = useState(null);
+  const [currentBlockImage, setCurrentBlockImage] = useState("");
+
+  const [projectForm, setProjectForm] = useState(initialProjectForm);
+  const [blockForm, setBlockForm] = useState(initialBlockForm);
+
+  const resetProjectForm = () => {
+    setEditProjectId(null);
+    setCurrentProjectImage("");
+    setProjectForm(initialProjectForm);
+  };
+
+  const resetBlockForm = () => {
+    setEditBlockId(null);
+    setCurrentBlockImage("");
+    setBlockForm(initialBlockForm);
+  };
+
+  const loadProjects = useCallback(
+    async (keepSelection = true) => {
+      try {
+        setLoadingProjects(true);
+
+        const res = await getProjectsAdmin();
+        const data = normalizeResponseData(res);
+        const rows = Array.isArray(data) ? data : [];
+
+        setProjects(rows);
+
+        if (rows.length === 0) {
+          setSelectedProjectId(null);
+          setBlocks([]);
+          return;
+        }
+
+        if (!keepSelection) {
+          setSelectedProjectId(rows[0].id);
+          return;
+        }
+
+        const stillExists = rows.some((item) => item.id === selectedProjectId);
+
+        if (!selectedProjectId || !stillExists) {
+          setSelectedProjectId(rows[0].id);
+        }
+      } catch (err) {
+        Swal.fire(
+          "Error",
+          err?.response?.data?.message || "Gagal memuat project",
+          "error"
+        );
+      } finally {
+        setLoadingProjects(false);
+      }
+    },
+    [selectedProjectId]
+  );
+
+  const loadBlocks = useCallback(async (projectId) => {
+    if (!projectId) {
+      setBlocks([]);
+      return;
+    }
+
+    try {
+      setLoadingBlocks(true);
+      const res = await getProjectBlocksAdmin(projectId);
+      const data = normalizeResponseData(res);
+      setBlocks(Array.isArray(data) ? data : []);
+    } catch (err) {
+      setBlocks([]);
+      Swal.fire(
+        "Error",
+        err?.response?.data?.message || "Gagal memuat block project",
+        "error"
+      );
+    } finally {
+      setLoadingBlocks(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadProjects();
+  }, [loadProjects]);
+
+  useEffect(() => {
+    loadBlocks(selectedProjectId);
+  }, [selectedProjectId, loadBlocks]);
+
+  const onProjectChange = (e) => {
+    const { name, value } = e.target;
+
+    setProjectForm((prev) => ({
+      ...prev,
+      [name]: ["is_featured", "is_active", "order_number"].includes(name)
+        ? Number(value)
+        : value,
+    }));
+  };
+
+  const onBlockChange = (e) => {
+    const { name, value } = e.target;
+
+    setBlockForm((prev) => ({
+      ...prev,
+      [name]: ["is_active", "order_number"].includes(name)
+        ? Number(value)
+        : value,
+    }));
+  };
+
+  const onProjectFileChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    setProjectForm((prev) => ({ ...prev, file }));
+  };
+
+  const onBlockFileChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    setBlockForm((prev) => ({ ...prev, file }));
+  };
+
+  const projectPreview = useMemo(() => {
+    if (projectForm.file) {
+      return URL.createObjectURL(projectForm.file);
+    }
+    if (currentProjectImage) {
+      return resolveProjectImage(currentProjectImage);
+    }
+    return "";
+  }, [projectForm.file, currentProjectImage]);
+
+  const blockPreview = useMemo(() => {
+    if (blockForm.file) {
+      return URL.createObjectURL(blockForm.file);
+    }
+    if (currentBlockImage) {
+      return resolveProjectImage(currentBlockImage);
+    }
+    return "";
+  }, [blockForm.file, currentBlockImage]);
+
+  useEffect(() => {
+    return () => {
+      if (projectForm.file && projectPreview?.startsWith("blob:")) {
+        URL.revokeObjectURL(projectPreview);
+      }
+    };
+  }, [projectPreview, projectForm.file]);
+
+  useEffect(() => {
+    return () => {
+      if (blockForm.file && blockPreview?.startsWith("blob:")) {
+        URL.revokeObjectURL(blockPreview);
+      }
+    };
+  }, [blockPreview, blockForm.file]);
+
+  const onEditProject = (item) => {
+    setEditProjectId(item.id);
+    setCurrentProjectImage(item.featured_image || "");
+    setProjectForm({
+      file: null,
+      title: item.title || "",
+      slug: item.slug || "",
+      short_description: item.short_description || "",
+      full_description: item.full_description || "",
+      external_link: item.external_link || "",
+      location: item.location || "",
+      project_date: item.project_date || "",
+      is_featured: Number(item.is_featured ?? 0),
+      is_active: Number(item.is_active ?? 1),
+      order_number: Number(item.order_number ?? 1),
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const onEditBlock = (item) => {
+    setEditBlockId(item.id);
+    setCurrentBlockImage(item.image || "");
+    setBlockForm({
+      file: null,
+      title: item.title || "",
+      content: item.content || "",
+      layout_type: item.layout_type || "text-left-image-right",
+      image_style: item.image_style || "rounded-2xl",
+      order_number: Number(item.order_number ?? 1),
+      is_active: Number(item.is_active ?? 1),
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const onSubmitProject = async (e) => {
+    e.preventDefault();
+
+    if (!projectForm.title.trim() || !projectForm.short_description.trim()) {
+      return Swal.fire(
+        "Error",
+        "Title dan short description wajib diisi",
+        "error"
+      );
+    }
+
+    try {
+      setSubmittingProject(true);
+
+      const fd = new FormData();
+      fd.append("title", projectForm.title.trim());
+      fd.append("slug", projectForm.slug.trim());
+      fd.append("short_description", projectForm.short_description.trim());
+      fd.append("full_description", projectForm.full_description.trim());
+      fd.append("external_link", projectForm.external_link.trim());
+      fd.append("location", projectForm.location.trim());
+      fd.append("project_date", projectForm.project_date.trim());
+      fd.append("is_featured", String(projectForm.is_featured));
+      fd.append("is_active", String(projectForm.is_active));
+      fd.append("order_number", String(projectForm.order_number));
+
+      if (projectForm.file) {
+        fd.append("image", projectForm.file);
+      }
+
+      if (editProjectId) {
+        await updateProject(editProjectId, fd);
+        Swal.fire("Berhasil", "Project berhasil diupdate", "success");
+      } else {
+        await createProject(fd);
+        Swal.fire("Berhasil", "Project berhasil ditambahkan", "success");
+      }
+
+      resetProjectForm();
+      await loadProjects();
+    } catch (err) {
+      Swal.fire(
+        "Error",
+        err?.response?.data?.message || "Gagal menyimpan project",
+        "error"
+      );
+    } finally {
+      setSubmittingProject(false);
+    }
+  };
+
+  const onDeleteProject = async (id) => {
+    const result = await Swal.fire({
+      title: "Hapus project?",
+      text: "Project dan semua block di dalamnya akan ikut terhapus.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#d33",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await deleteProject(id);
+      Swal.fire("Berhasil", "Project berhasil dihapus", "success");
+
+      resetProjectForm();
+      resetBlockForm();
+
+      if (selectedProjectId === id) {
+        setSelectedProjectId(null);
+      }
+
+      await loadProjects(false);
+    } catch (err) {
+      Swal.fire(
+        "Error",
+        err?.response?.data?.message || "Gagal menghapus project",
+        "error"
+      );
+    }
+  };
+
+  const onSubmitBlock = async (e) => {
+    e.preventDefault();
+
+    if (!selectedProjectId) {
+      return Swal.fire("Error", "Pilih project terlebih dahulu", "error");
+    }
+
+    if (!blockForm.content.trim()) {
+      return Swal.fire("Error", "Content block wajib diisi", "error");
+    }
+
+    try {
+      setSubmittingBlock(true);
+
+      const fd = new FormData();
+      fd.append("title", blockForm.title.trim());
+      fd.append("content", blockForm.content.trim());
+      fd.append("layout_type", blockForm.layout_type);
+      fd.append("image_style", blockForm.image_style);
+      fd.append("order_number", String(blockForm.order_number));
+      fd.append("is_active", String(blockForm.is_active));
+
+      if (blockForm.file) {
+        fd.append("image", blockForm.file);
+      }
+
+      if (editBlockId) {
+        await updateProjectBlock(editBlockId, fd);
+        Swal.fire("Berhasil", "Block berhasil diupdate", "success");
+      } else {
+        await createProjectBlock(selectedProjectId, fd);
+        Swal.fire("Berhasil", "Block berhasil ditambahkan", "success");
+      }
+
+      resetBlockForm();
+      await loadBlocks(selectedProjectId);
+    } catch (err) {
+      Swal.fire(
+        "Error",
+        err?.response?.data?.message || "Gagal menyimpan block",
+        "error"
+      );
+    } finally {
+      setSubmittingBlock(false);
+    }
+  };
+
+  const onDeleteBlock = async (id) => {
+    const result = await Swal.fire({
+      title: "Hapus block?",
+      text: "Block ini akan dihapus permanen.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Ya, hapus",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#d33",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await deleteProjectBlock(id);
+      Swal.fire("Berhasil", "Block berhasil dihapus", "success");
+      resetBlockForm();
+      await loadBlocks(selectedProjectId);
+    } catch (err) {
+      Swal.fire(
+        "Error",
+        err?.response?.data?.message || "Gagal menghapus block",
+        "error"
+      );
+    }
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto p-6 space-y-10">
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-extrabold text-[#1e9c2d]">
+              Project Management
+            </h1>
+            <p className="text-gray-500">
+              Kelola project utama dan block kontennya.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => loadProjects(true)}
+            className="px-4 py-2 rounded-xl border hover:bg-gray-50"
+          >
+            Refresh
+          </button>
+        </div>
+
+        <form
+          onSubmit={onSubmitProject}
+          className="bg-white border rounded-2xl p-6 shadow-sm space-y-5"
+        >
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Title</label>
+                <input
+                  name="title"
+                  value={projectForm.title}
+                  onChange={onProjectChange}
+                  className="w-full border rounded-xl px-3 py-2 mt-1"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Slug</label>
+                <input
+                  name="slug"
+                  value={projectForm.slug}
+                  onChange={onProjectChange}
+                  className="w-full border rounded-xl px-3 py-2 mt-1"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Short Description</label>
+                <textarea
+                  name="short_description"
+                  value={projectForm.short_description}
+                  onChange={onProjectChange}
+                  rows={4}
+                  className="w-full border rounded-xl px-3 py-2 mt-1"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Full Description</label>
+                <textarea
+                  name="full_description"
+                  value={projectForm.full_description}
+                  onChange={onProjectChange}
+                  rows={6}
+                  className="w-full border rounded-xl px-3 py-2 mt-1"
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Location</label>
+                  <input
+                    name="location"
+                    value={projectForm.location}
+                    onChange={onProjectChange}
+                    className="w-full border rounded-xl px-3 py-2 mt-1"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Project Date</label>
+                  <input
+                    name="project_date"
+                    value={projectForm.project_date}
+                    onChange={onProjectChange}
+                    className="w-full border rounded-xl px-3 py-2 mt-1"
+                    placeholder="Contoh: 2024 / Jan 2025"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">External Link</label>
+                <input
+                  name="external_link"
+                  value={projectForm.external_link}
+                  onChange={onProjectChange}
+                  className="w-full border rounded-xl px-3 py-2 mt-1"
+                />
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Order</label>
+                  <input
+                    type="number"
+                    min={1}
+                    name="order_number"
+                    value={projectForm.order_number}
+                    onChange={onProjectChange}
+                    className="w-full border rounded-xl px-3 py-2 mt-1"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Featured</label>
+                  <select
+                    name="is_featured"
+                    value={projectForm.is_featured}
+                    onChange={onProjectChange}
+                    className="w-full border rounded-xl px-3 py-2 mt-1"
+                  >
+                    <option value={1}>Yes</option>
+                    <option value={0}>No</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Status</label>
+                  <select
+                    name="is_active"
+                    value={projectForm.is_active}
+                    onChange={onProjectChange}
+                    className="w-full border rounded-xl px-3 py-2 mt-1"
+                  >
+                    <option value={1}>Active</option>
+                    <option value={0}>Inactive</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Featured Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={onProjectFileChange}
+                className="w-full border rounded-xl px-3 py-2 mt-1"
+              />
+
+              {projectPreview ? (
+                <div className="mt-3 border rounded-xl overflow-hidden">
+                  <img
+                    src={projectPreview}
+                    alt="Project Preview"
+                    className="w-full h-[420px] object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="mt-3 border rounded-xl h-[420px] flex items-center justify-center text-gray-400 bg-gray-50">
+                  No Image
+                </div>
+              )}
+
+              {editProjectId && !projectForm.file && currentProjectImage && (
+                <div className="mt-2 text-xs text-gray-500 break-all">
+                  Gambar saat ini: {currentProjectImage}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={submittingProject}
+              className="bg-[#1e9c2d] text-white px-4 py-2 rounded-xl disabled:opacity-60"
+            >
+              {submittingProject
+                ? "Menyimpan..."
+                : editProjectId
+                ? "Update Project"
+                : "Tambah Project"}
+            </button>
+
+            {editProjectId && (
+              <button
+                type="button"
+                onClick={resetProjectForm}
+                className="px-4 py-2 rounded-xl border"
+              >
+                Batal
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+
+      <div className="bg-white border rounded-2xl p-6 shadow-sm">
+        <h2 className="text-2xl font-bold text-slate-800 mb-5">
+          Daftar Project
+        </h2>
+
+        {loadingProjects ? (
+          <div className="text-gray-500">Loading project...</div>
+        ) : projects.length === 0 ? (
+          <div className="text-gray-500">Belum ada project.</div>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-4">
+            {projects.map((item) => (
+              <div
+                key={item.id}
+                className={`border rounded-2xl p-4 transition ${
+                  selectedProjectId === item.id
+                    ? "border-[#1e9c2d] bg-green-50/40"
+                    : "border-gray-200"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="font-bold text-lg text-slate-800">
+                      {item.title}
+                    </div>
+                    <div className="text-sm text-gray-500 mt-1">
+                      {item.location || "-"} • {item.project_date || "-"}
+                    </div>
+                    <div className="text-sm text-gray-700 mt-2 line-clamp-3">
+                      {item.short_description}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-3">
+                      order: {item.order_number} • featured:{" "}
+                      {Number(item.is_featured) ? "yes" : "no"} • status:{" "}
+                      <span
+                        className={
+                          Number(item.is_active)
+                            ? "text-[#1e9c2d]"
+                            : "text-gray-400"
+                        }
+                      >
+                        {Number(item.is_active) ? "active" : "inactive"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedProjectId(item.id)}
+                      className="text-sm text-green-700 hover:underline"
+                    >
+                      Pilih
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onEditProject(item)}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteProject(item.id)}
+                      className="text-sm text-red-600 hover:underline"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                </div>
+
+                {item.featured_image && (
+                  <div className="mt-3 text-xs text-gray-500 break-all">
+                    {item.featured_image}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white border rounded-2xl p-6 shadow-sm space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">Project Blocks</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            {selectedProjectId
+              ? `Kelola block untuk project ID ${selectedProjectId}`
+              : "Pilih project terlebih dahulu untuk mengelola blocks"}
+          </p>
+        </div>
+
+        <form onSubmit={onSubmitBlock} className="space-y-5">
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">
+                  Title Block (opsional)
+                </label>
+                <input
+                  name="title"
+                  value={blockForm.title}
+                  onChange={onBlockChange}
+                  className="w-full border rounded-xl px-3 py-2 mt-1"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Content</label>
+                <textarea
+                  name="content"
+                  value={blockForm.content}
+                  onChange={onBlockChange}
+                  rows={7}
+                  className="w-full border rounded-xl px-3 py-2 mt-1"
+                />
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Layout</label>
+                  <select
+                    name="layout_type"
+                    value={blockForm.layout_type}
+                    onChange={onBlockChange}
+                    className="w-full border rounded-xl px-3 py-2 mt-1"
+                  >
+                    <option value="text-left-image-right">
+                      Text Left - Image Right
+                    </option>
+                    <option value="image-left-text-right">
+                      Image Left - Text Right
+                    </option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Image Style</label>
+                  <select
+                    name="image_style"
+                    value={blockForm.image_style}
+                    onChange={onBlockChange}
+                    className="w-full border rounded-xl px-3 py-2 mt-1"
+                  >
+                    <option value="rounded-full">Rounded Full</option>
+                    <option value="rounded-2xl">Rounded 2XL</option>
+                    <option value="rounded-xl">Rounded XL</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Order</label>
+                  <input
+                    type="number"
+                    min={1}
+                    name="order_number"
+                    value={blockForm.order_number}
+                    onChange={onBlockChange}
+                    className="w-full border rounded-xl px-3 py-2 mt-1"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium">Status</label>
+                  <select
+                    name="is_active"
+                    value={blockForm.is_active}
+                    onChange={onBlockChange}
+                    className="w-full border rounded-xl px-3 py-2 mt-1"
+                  >
+                    <option value={1}>Active</option>
+                    <option value={0}>Inactive</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Upload Image Block</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={onBlockFileChange}
+                className="w-full border rounded-xl px-3 py-2 mt-1"
+              />
+
+              {blockPreview ? (
+                <div className="mt-3 border rounded-xl overflow-hidden">
+                  <img
+                    src={blockPreview}
+                    alt="Block Preview"
+                    className="w-full h-[320px] object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="mt-3 border rounded-xl h-[320px] flex items-center justify-center text-gray-400 bg-gray-50">
+                  No Image
+                </div>
+              )}
+
+              {editBlockId && !blockForm.file && currentBlockImage && (
+                <div className="mt-2 text-xs text-gray-500 break-all">
+                  Gambar saat ini: {currentBlockImage}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={submittingBlock || !selectedProjectId}
+              className="bg-slate-900 text-white px-4 py-2 rounded-xl disabled:opacity-60"
+            >
+              {submittingBlock
+                ? "Menyimpan..."
+                : editBlockId
+                ? "Update Block"
+                : "Tambah Block"}
+            </button>
+
+            {editBlockId && (
+              <button
+                type="button"
+                onClick={resetBlockForm}
+                className="px-4 py-2 rounded-xl border"
+              >
+                Batal
+              </button>
+            )}
+          </div>
+        </form>
+
+        <div>
+          {loadingBlocks ? (
+            <div className="text-gray-500">Loading blocks...</div>
+          ) : blocks.length === 0 ? (
+            <div className="text-gray-500">
+              Belum ada block untuk project ini.
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 gap-4">
+              {blocks.map((item) => (
+                <div key={item.id} className="border rounded-2xl p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="font-semibold text-slate-800">
+                        {item.title || "Untitled Block"}
+                      </div>
+                      <div className="text-sm text-gray-700 mt-2 line-clamp-4">
+                        {item.content}
+                      </div>
+                      <div className="text-xs text-gray-500 mt-3">
+                        layout: {item.layout_type} • style: {item.image_style} •
+                        order: {item.order_number}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onEditBlock(item)}
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDeleteBlock(item.id)}
+                        className="text-sm text-red-600 hover:underline"
+                      >
+                        Hapus
+                      </button>
+                    </div>
+                  </div>
+
+                  {item.image && (
+                    <div className="mt-3 text-xs text-gray-500 break-all">
+                      {item.image}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -19,21 +19,15 @@ export default function Navbar() {
         {/* Desktop Menu */}
         <ul className="hidden md:flex gap-8 font-medium text-gray-700">
           <li><a href="#profile" className="hover:text-[#1E9C2D] transition-colors">Profile</a></li>
-          <li><a href="#aims" className="hover:text-[#1E9C2D] transition-colors">What We Do?</a></li>
+          <li><a href="#aims" className="hover:text-[#1E9C2D] transition-colors">What We Do</a></li>
           <li><a href="#publications" className="hover:text-[#1E9C2D] transition-colors">Publication</a></li>
-          <li><a href="#ourteam" className="hover:text-[#1E9C2D] transition-colors">Our Team</a></li>
+          <li><a href="#ourteam" className="hover:text-[#1E9C2D] transition-colors">CSERM Team</a></li>
           <li><a href="#news" className="hover:text-[#1E9C2D] transition-colors">News</a></li>
           <li><a href="#contact" className="hover:text-[#1E9C2D] transition-colors">Contact Us</a></li>
         </ul>
 
         {/* Button Desktop */}
-        <a
-          href="#info"
-          className="hidden md:inline-block px-5 py-2 rounded-full text-white font-medium shadow-md hover:shadow-lg hover:scale-105 transition-transform"
-          style={{ backgroundColor: "#1E9C2D" }}
-        >
-          For Your Information
-        </a>
+       
 
         {/* Mobile Button (animated hamburger) */}
         <button
