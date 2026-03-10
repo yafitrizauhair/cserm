@@ -1,168 +1,187 @@
+🌿 C-SERM Website
 
-LINK LIVE DEMO:https://csermunas.vercel.app/
+Centre for Sustainable Energy & Resources Management (C-SERM) — Official website built using React.js and Tailwind CSS.
 
- 🌿 C-SERM Website
+The website presents C-SERM’s vision, mission, projects, publications, and contact information with a modern, elegant, and fully responsive design.
 
-> Centre for Sustainable Energy & Resources Management (C-SERM) — Official website built using React.js & Tailwind CSS.
-> The website aims to present C-SERM’s vision, mission, projects, publications, and contact information in an elegant, modern, and responsive design.
+🔗 Live Demo
 
----
+👉 https://csermunas.vercel.app/
 
- 🚀 Features
+🚀 Features
+🏠 Home Page
 
- 🏠 Home Page
+Smooth hero section slider with overlay and fade transitions using Swiper.js
 
- Smooth hero section slider with overlay and fade transitions (Swiper.js).
- Responsive layout optimized for all devices.
- Clear navigation with anchored sections.
+Fully responsive layout for desktop, tablet, and mobile devices
 
- 🎯 Main Sections
+Clean and intuitive navigation system
 
-1. Profile Section — Introduction and overview of C-SERM.
-2. C-SERM’s Aims — Cards highlighting the main goals and initiatives.
-3. Vision & Mission — Split layout combining text and image with professional styling.
-4. Projects — Dynamic section showcasing current C-SERM projects.
-5. Publications — Research outputs and academic works.
-6. Our Team — Members, researchers, and contributors.
-7. News & Updates — Latest C-SERM activities and announcements.
-8. Contact Us — Integrated contact form and background image section.
+🎯 Main Sections
+1. Profile Section
 
- 💫 Animations & UI
+Introduction and overview of C-SERM.
 
- Swiper Slider with smooth fade and autoplay.
- Overlay effect for readability on hero images.
- Hover animations for cards and buttons.
- Tailwind CSS for modern, responsive styling.
+2. C-SERM’s Aims
 
----
+Cards highlighting the organization’s main goals and initiatives.
 
- 🧩 Tech Stack
+3. Vision & Mission
 
-| Technology                       | Description                                         |
-| -------------------------------- | --------------------------------------------------- |
-| React.js                     | Frontend library used for UI components and routing |
-| Tailwind CSS                 | Utility-first CSS framework for styling             |
-| Swiper.js                    | For responsive and smooth image carousel            |
-| Vite                         | Fast build tool and development server              |
-| Node.js & Express (optional) | Backend API connection (if added later)             |
+Professional split layout combining text and image presentation.
 
----
+4. Projects
 
- 🗂️ Folder Structure
+Dynamic section showcasing current and ongoing C-SERM projects.
 
-```
+5. Publications
+
+Displays research outputs, journals, and academic works.
+
+6. Our Team
+
+Information about researchers, members, and contributors.
+
+7. News & Updates
+
+Latest activities, announcements, and events from C-SERM.
+
+8. Contact Us
+
+Integrated contact form with a background image section.
+
+💫 UI & Animations
+
+Swiper.js slider
+
+Smooth fade transitions
+
+Autoplay functionality
+
+Overlay effects to improve text readability on hero images
+
+Hover animations for cards and buttons
+
+Tailwind CSS for modern and responsive styling
+
+🧩 Tech Stack
+Technology	Description
+React.js	Frontend library for building UI components
+Tailwind CSS	Utility-first CSS framework
+Swiper.js	Responsive image carousel
+Vite	Fast development server and build tool
+Node.js / Express (Optional)	Backend API integration if needed
+📂 Project Structure
 C-SERM/
 │
 ├── src/
-│   ├── assets/               Image & media files
-│   ├── components/           Reusable components (Navbar, Footer, etc.)
-│   ├── pages/                Each main page (HomePage, ProjectPage, etc.)
-│   ├── App.jsx               Main app file
-│   ├── index.jsx             Entry point
-│   └── styles/               Global or custom styles (if any)
+│   ├── assets/          # Images and media files
+│   ├── components/      # Reusable components (Navbar, Footer, etc.)
+│   ├── pages/           # Page components (HomePage, ProjectPage, etc.)
+│   ├── App.jsx          # Main application file
+│   ├── main.jsx         # Entry point
+│   └── styles/          # Global styles (if any)
 │
 ├── public/
-│   └── images/               Public-access images
+│   └── images/          # Public static images
 │
 ├── package.json
 ├── tailwind.config.js
 ├── postcss.config.js
 └── README.md
-```
-
----
-
- ⚙️ Installation & Setup
-
- 1️⃣ Clone Repository
-
-```bash
+⚙️ Installation & Setup
+1️⃣ Clone the Repository
 git clone https://github.com/yourusername/cserm-website.git
 cd cserm-website
-```
-
- 2️⃣ Install Dependencies
-
-```bash
+2️⃣ Install Dependencies
 npm install
-```
-
- 3️⃣ Run Development Server
-
-```bash
+3️⃣ Run Development Server
 npm run dev
-```
 
- 4️⃣ Build for Production
+Open in browser:
 
-```bash
+http://localhost:5173
+
+4️⃣ Build for Production
 npm run build
-```
+🧠 Development Notes
+Hero Section Slider
 
----
+Uses Swiper.js
 
- 🧠 Development Notes
+Modules:
 
- Hero Section Slider:
+EffectFade
 
-   Uses `Swiper` with `EffectFade`, `Autoplay`, and smooth transitions (`speed: 2500`).
-   Includes dark overlay to enhance text readability.
- Responsive Design:
+Autoplay
 
-   Fully optimized for desktop, tablet, and mobile.
-   Uses Tailwind utility classes for quick adjustments.
- Image Optimization:
+Transition speed: 2500ms
 
-   Store hero images in `/src/assets/`.
-   Use `.jpg` or `.webp` for better performance.
+Responsive Design
 
----
+Optimized for:
 
- 🌐 Deployment
+Desktop
 
-You can deploy easily using:
+Tablet
 
- Vercel → automatic from GitHub
- Netlify → drag-and-drop build folder
- GitHub Pages → via `npm run build` + deploy script
+Mobile
 
----
+Using Tailwind utility classes.
 
- 📸 Preview
+Image Optimization
 
-![Hero Section](./src/assets/herobaru.jpg)
+For better performance:
+
+Store hero images in:
+
+src/assets/
+
+Recommended formats:
+
+.jpg
+.webp
+🌐 Deployment
+
+This project can be deployed easily using:
+
+Vercel
+
+Recommended deployment method.
+
+Automatic deployment from GitHub
+Netlify
+
+Upload the build folder.
+
+GitHub Pages
+
+Using:
+
+npm run build
+📸 Preview
+
+Hero Section Example
+
 Smooth fade hero slider with overlay background.
 
----
-
- 💬 Contact
+📬 Contact
 
 Centre for Sustainable Energy & Resources Management (C-SERM)
-📍 Universitas Nasional, Jakarta, Indonesia
-🌐 [https://cserm.unas.ac.id](https://cserm.unas.ac.id)
-📧 [contact@cserm.unas.ac.id](mailto:contact@cserm.unas.ac.id)
+Universitas Nasional — Jakarta, Indonesia
 
----
+📍 Universitas Nasional, Jakarta
+🌐 https://cserm.unas.ac.id
 
- 📜 License
+📧 contact@cserm.unas.ac.id
 
-This project is licensed under the MIT License — feel free to use and modify for educational or institutional purposes.
+📜 License
 
+This project is licensed under the MIT License.
 
+You are free to use, modify, and distribute this project for educational or institutional purposes.
 
+✨ Maintained By
 
-NOTE
-
-untuk contact us ganti dibagian
-buka file googleScript.js copy semua ke google apps script
-  
-
-
-setelah itu buka google spreedsheet ganti id cari bagian
-    const sheet = SpreadsheetApp.openById("ganti id google spreedsheet anda")
-      .getSheetByName("Sheet1");
-
-
-
-
-  
+C-SERM Development Team
+Universitas Nasional
