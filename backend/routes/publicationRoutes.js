@@ -1,13 +1,19 @@
 const express = require("express");
 const router = express.Router();
-const publicationController = require("../controllers/publicationController");
+
+const {
+  getPublications,
+  createPublication,
+  updatePublication,
+  deletePublication,
+} = require("../controllers/publicationController");
 
 // public read
-router.get("/", publicationController.getAll);
+router.get("/", getPublications);
 
-// admin CRUD (kalau mau diproteksi, tambahkan verifyToken middleware di sini)
-router.post("/", publicationController.create);
-router.put("/:id", publicationController.update);
-router.delete("/:id", publicationController.remove);
+// CRUD
+router.post("/", createPublication);
+router.put("/:id", updatePublication);
+router.delete("/:id", deletePublication);
 
 module.exports = router;

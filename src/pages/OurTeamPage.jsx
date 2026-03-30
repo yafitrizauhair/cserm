@@ -9,10 +9,15 @@ export default function OurTeam() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // 🔥 PAGINATION STAFF
+  const [pageStaff, setPageStaff] = useState(1);
+  const limit = 8;
+
+  // ================= FETCH =================
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/api/teams`, { timeout: 10000 });
+        const res = await axios.get(`${API_BASE_URL}/api/teams`);
         setTeams(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         setError(err?.response?.data?.message || "Gagal memuat data team");
@@ -24,89 +29,161 @@ export default function OurTeam() {
     fetchTeams();
   }, []);
 
-  //  Pisahkan berdasarkan category dari database (management/staff)
-  const { management, staff } = useMemo(() => {
-    const normalize = (c) => (c || "staff").toString().trim().toLowerCase();
+  // ================= GROUP =================
+  const { management, staff, expert } = useMemo(() => {
+    const normalize = (c) => {
+      const val = (c || "staff").toString().trim().toLowerCase();
+      if (val === "management") return "management";
+      if (val === "expert") return "expert";
+      return "staff";
+    };
+
     const mgmt = [];
     const stf = [];
+    const exp = [];
 
     for (const t of teams) {
       const cat = normalize(t.category);
       if (cat === "management") mgmt.push(t);
-      else stf.push(t); // default ke staff jika null/unknown
+      else if (cat === "expert") exp.push(t);
+      else stf.push(t);
     }
 
-    return { management: mgmt, staff: stf };
+    return { management: mgmt, staff: stf, expert: exp };
   }, [teams]);
 
+  // ================= PAGINATION =================
+  const totalPages = Math.ceil(staff.length / limit);
+
+  const currentStaff = useMemo(() => {
+    const start = (pageStaff - 1) * limit;
+    return staff.slice(start, start + limit);
+  }, [staff, pageStaff]);
+
+  // reset page kalau data berubah
+  useEffect(() => {
+    setPageStaff(1);
+  }, [staff.length]);
+
+  // jaga supaya tidak out of range
+  useEffect(() => {
+    if (pageStaff > totalPages) {
+      setPageStaff(totalPages || 1);
+    }
+  }, [totalPages, pageStaff]);
+
+  // ================= CARD =================
   const TeamCard = ({ person }) => (
     <div className="bg-white rounded-2xl overflow-hidden text-center shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 border border-gray-100">
-      <div className="overflow-hidden">
-        <img
-          src={
-            person.photo
-              ? `${API_BASE_URL}/uploads/teams/${person.photo}`
-              : "https://via.placeholder.com/300x300?text=No+Photo"
-          }
-          alt={person.name}
-          className="w-full h-64 object-cover transition-transform duration-500 hover:scale-110"
-        />
-      </div>
+      <img
+        src={
+          person.photo
+            ? `${API_BASE_URL}/uploads/teams/${person.photo}`
+            : "https://via.placeholder.com/300x300?text=No+Photo"
+        }
+        alt={person.name}
+        className="w-full h-64 object-cover"
+      />
       <div className="p-5">
-        <h3 className="text-md font-medium text-gray-700 mb-1">{person.position}</h3>
-        <p className="text-[#1E9C2D] font-bold text-lg">{person.name}</p>
+        <h3 className="text-md text-gray-600">{person.position}</h3>
+        <p className="text-[#1E9C2D] font-bold">{person.name}</p>
       </div>
     </div>
   );
 
+  // ================= PAGINATION UI =================
+  const Pagination = () => {
+    if (totalPages <= 1) return null;
+
+    return (
+      <div className="flex justify-center items-center gap-2 mt-10 flex-wrap">
+        {/* Prev */}
+        <button
+          onClick={() => setPageStaff((p) => Math.max(1, p - 1))}
+          disabled={pageStaff === 1}
+          className="px-3 py-1 border rounded-lg hover:bg-gray-100 disabled:opacity-50"
+        >
+          Prev
+        </button>
+
+        {/* Number */}
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+          <button
+            key={p}
+            onClick={() => setPageStaff(p)}
+            className={`px-3 py-1 rounded-lg border ${
+              p === pageStaff
+                ? "bg-green-600 text-white border-green-600"
+                : "hover:bg-gray-100"
+            }`}
+          >
+            {p}
+          </button>
+        ))}
+
+        {/* Next */}
+        <button
+          onClick={() =>
+            setPageStaff((p) => Math.min(totalPages, p + 1))
+          }
+          disabled={pageStaff === totalPages}
+          className="px-3 py-1 border rounded-lg hover:bg-gray-100 disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+    );
+  };
+
+  // ================= RENDER =================
   return (
-    <div className="min-h-screen bg-gray-50 font-sans scroll-smooth">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      {/* Loading */}
-      {loading && (
-        <div className="text-center py-20 text-gray-500">Loading team...</div>
-      )}
-
-      {/* Error */}
-      {!loading && error && (
-        <div className="text-center py-20 text-red-500">{error}</div>
-      )}
+      {loading && <p className="text-center py-20">Loading...</p>}
+      {error && <p className="text-center py-20 text-red-500">{error}</p>}
 
       {!loading && !error && (
         <>
           {/* MANAGEMENT */}
           <section className="max-w-7xl mx-auto px-6 py-16">
-            <h2 className="text-3xl font-extrabold mb-10 text-[#1E9C2D] text-center tracking-wide">
-              C-SERM MANAGEMENT
+            <h2 className="text-3xl font-bold text-center text-green-700 mb-10">
+              MANAGEMENT
             </h2>
 
-            {management.length === 0 ? (
-              <p className="text-center text-gray-500">Belum ada data management</p>
-            ) : (
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
-                {management.map((person) => (
-                  <TeamCard key={person.id} person={person} />
-                ))}
-              </div>
-            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {management.map((p) => (
+                <TeamCard key={p.id} person={p} />
+              ))}
+            </div>
+          </section>
+
+          {/* EXPERT */}
+          <section className="max-w-7xl mx-auto px-6 pb-16">
+            <h2 className="text-3xl font-bold text-center text-green-700 mb-10">
+              EXPERT
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {expert.map((p) => (
+                <TeamCard key={p.id} person={p} />
+              ))}
+            </div>
           </section>
 
           {/* STAFF */}
           <section className="max-w-7xl mx-auto px-6 pb-20">
-            <h2 className="text-3xl font-extrabold mb-10 text-[#1E9C2D] text-center tracking-wide">
-              C-SERM STAFF
+            <h2 className="text-3xl font-bold text-center text-green-700 mb-10">
+              STAFF
             </h2>
 
-            {staff.length === 0 ? (
-              <p className="text-center text-gray-500">Belum ada data staff</p>
-            ) : (
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
-                {staff.map((person) => (
-                  <TeamCard key={person.id} person={person} />
-                ))}
-              </div>
-            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {currentStaff.map((p) => (
+                <TeamCard key={p.id} person={p} />
+              ))}
+            </div>
+
+            <Pagination />
           </section>
         </>
       )}

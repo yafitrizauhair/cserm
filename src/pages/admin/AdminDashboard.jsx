@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useCallback } from "react";
 import {
   LogOut,
   FileText,
@@ -15,7 +16,7 @@ import {
   FolderKanban,
 } from "lucide-react";
 
-// Single source of truth
+// ===== DATA DASHBOARD =====
 const DASHBOARD_SECTIONS = [
   {
     id: "content",
@@ -56,7 +57,8 @@ const DASHBOARD_SECTIONS = [
   {
     id: "homepage",
     title: "Homepage Management",
-    subtitle: "Kelola seluruh konten utama yang tampil di halaman depan website.",
+    subtitle:
+      "Kelola seluruh konten utama yang tampil di halaman depan website.",
     gridClass: "lg:grid-cols-4",
     items: [
       {
@@ -94,10 +96,46 @@ const DASHBOARD_SECTIONS = [
 export default function AdminDashboard() {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  // ✅ dibuat stabil supaya tidak warning
+  const handleLogout = useCallback(() => {
     localStorage.clear();
     navigate("/login");
-  };
+  }, [navigate]);
+
+  // 🔥 AUTO LOGOUT SETELAH 3 MENIT IDLE (NO WARNING)
+  useEffect(() => {
+    let timeoutId;
+
+    const resetTimer = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+
+      timeoutId = setTimeout(() => {
+        handleLogout();
+      }, 3 * 60 * 1000); // 3 menit
+    };
+
+    const events = [
+      "mousemove",
+      "mousedown",
+      "keypress",
+      "touchstart",
+      "scroll",
+    ];
+
+    events.forEach((event) =>
+      window.addEventListener(event, resetTimer)
+    );
+
+    // mulai timer pertama
+    resetTimer();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      events.forEach((event) =>
+        window.removeEventListener(event, resetTimer)
+      );
+    };
+  }, [handleLogout]);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] pb-20">
@@ -112,7 +150,9 @@ export default function AdminDashboard() {
                 <h1 className="text-3xl font-black text-slate-900 tracking-tight">
                   Admin <span className="text-indigo-600 italic">Panel</span>
                 </h1>
-                <p className="text-slate-500 font-medium">System Control Center</p>
+                <p className="text-slate-500 font-medium">
+                  System Control Center
+                </p>
               </div>
             </div>
 
@@ -129,9 +169,21 @@ export default function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-4 md:px-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-          <StatCard label="Server Status" value="Online" icon={<Activity className="text-green-500" />} />
-          <StatCard label="Total Modules" value="8 Active" icon={<Layers className="text-indigo-600" />} />
-          <StatCard label="Last Updated" value="Today, 08:42" icon={<Settings className="text-slate-400" />} />
+          <StatCard
+            label="Server Status"
+            value="Online"
+            icon={<Activity className="text-green-500" />}
+          />
+          <StatCard
+            label="Total Modules"
+            value="8 Active"
+            icon={<Layers className="text-indigo-600" />}
+          />
+          <StatCard
+            label="Last Updated"
+            value="Today, 08:42"
+            icon={<Settings className="text-slate-400" />}
+          />
         </div>
 
         {DASHBOARD_SECTIONS.map((section) => (
@@ -147,9 +199,15 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            <div className={`grid grid-cols-1 md:grid-cols-2 ${section.gridClass} gap-6`}>
+            <div
+              className={`grid grid-cols-1 md:grid-cols-2 ${section.gridClass} gap-6`}
+            >
               {section.items.map((item) => (
-                <MenuCard key={item.path} item={item} onNavigate={navigate} />
+                <MenuCard
+                  key={item.path}
+                  item={item}
+                  onNavigate={navigate}
+                />
               ))}
             </div>
           </section>
@@ -159,20 +217,22 @@ export default function AdminDashboard() {
   );
 }
 
+// ===== STAT CARD =====
 function StatCard({ label, value, icon }) {
   return (
     <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
       <div className="p-3 bg-slate-50 rounded-2xl">{icon}</div>
       <div>
-        <p className="text-slate-400 text-[11px] font-bold uppercase tracking-wider leading-none mb-1">
+        <p className="text-slate-400 text-[11px] font-bold uppercase tracking-wider mb-1">
           {label}
         </p>
-        <p className="text-lg font-black text-slate-800 tracking-tight">{value}</p>
+        <p className="text-lg font-black text-slate-800">{value}</p>
       </div>
     </div>
   );
 }
 
+// ===== MENU CARD =====
 function MenuCard({ item, onNavigate }) {
   const Icon = item.icon;
 
@@ -191,33 +251,25 @@ function MenuCard({ item, onNavigate }) {
     <button
       type="button"
       onClick={() => onNavigate(item.path)}
-      className="group relative text-left bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-200/50 transition-all duration-500 overflow-hidden w-full"
+      className="group relative text-left bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-sm hover:shadow-2xl transition-all duration-500 w-full"
     >
-      <div
-        className={`absolute -right-4 -top-4 w-24 h-24 ${
-          colorMap[item.color].split(" ")[0]
-        } opacity-0 group-hover:opacity-20 rounded-full transition-all duration-500 group-hover:scale-150`}
-      />
-
       <div
         className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ring-4 ${
           colorMap[item.color]
-        } transition-transform duration-500 group-hover:rotate-[10deg]`}
+        }`}
       >
         <Icon size={26} />
       </div>
 
-      <h3 className="text-xl font-black text-slate-800 mb-2 tracking-tight group-hover:text-indigo-600 transition-colors">
+      <h3 className="text-xl font-black text-slate-800 mb-2">
         {item.title}
       </h3>
 
-      <p className="text-slate-500 text-sm leading-relaxed mb-8 opacity-80">
-        {item.desc}
-      </p>
+      <p className="text-slate-500 text-sm mb-6">{item.desc}</p>
 
       <div className="flex items-center gap-2 text-indigo-600 font-bold text-sm">
         <span>Buka Manajemen</span>
-        <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
+        <ArrowRight size={16} />
       </div>
     </button>
   );

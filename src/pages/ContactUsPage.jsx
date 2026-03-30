@@ -3,9 +3,9 @@ import contactImage from "../assets/contactus.jpeg";
 
 import {
   HiOutlinePhone,
-  HiOutlineMail,
-  HiOutlineLocationMarker
-} from "react-icons/hi";
+  HiOutlineEnvelope,
+  HiOutlineMapPin
+} from "react-icons/hi2";
 
 const ContactUsPage = () => {
 
@@ -41,7 +41,7 @@ const ContactUsPage = () => {
     setStatusMessage(null);
 
     const scriptURL =
-      "https://script.google.com/macros/s/AKfycbyH-q5azT2nPuv4cBVR__QIwOwRDedjE0Bx8YPE7q5zbjtJzGvnEIeqn7G0eWPvZIWW/exec";
+      "https://script.google.com/macros/s/AKfycbwbyTd5tragoq4b20SVBAq4O5sLJbGO7YfsMWHsQJaygFhrcx6HsJfSgdM_Zo6vPP_S/exec";
 
     try {
       const payload = new URLSearchParams();
@@ -98,13 +98,11 @@ const ContactUsPage = () => {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center bg-cover bg-center relative"
-      style={{
-        backgroundImage: `url(${contactImage})`
-      }}
+      style={{ backgroundImage: `url(${contactImage})` }}
     >
 
       {/* overlay */}
-      <div className="absolute inset-0 bg-black/20"></div>
+      <div className="absolute inset-0 bg-black/30"></div>
 
       {/* container */}
       <div className="relative z-10 w-[90%] md:w-[80%] lg:w-[75%] mt-60 mb-20 flex flex-col md:flex-row rounded-3xl overflow-hidden shadow-2xl">
@@ -119,38 +117,37 @@ const ContactUsPage = () => {
           <div className="space-y-7 text-sm md:text-base">
 
             {/* PHONE */}
-            <div className="flex items-start gap-4">
-              <div className="w-11 h-11 rounded-full bg-[#703818]/30 border border-white/20 flex items-center justify-center shadow-md">
-                <HiOutlinePhone className="text-white text-xl" />
+            <div className="flex items-start gap-5">
+              <div className="w-12 h-12 shrink-0 rounded-full bg-[#703818]/30 border border-white/20 flex items-center justify-center shadow-md">
+                <HiOutlinePhone className="text-white text-[22px]" />
               </div>
 
-              <div className="leading-relaxed">
-                <div>+62 (21) 788 48 152</div>
-                <div>+62 (21) 780 2719</div>
+              <div className="leading-relaxed mt-2">
+                +62 (21) 788 48 152
               </div>
             </div>
 
             {/* EMAIL */}
-            <div className="flex items-start gap-4">
-              <div className="w-11 h-11 rounded-full bg-[#703818]/30 border border-white/20 flex items-center justify-center shadow-md">
-                <HiOutlineMail className="text-white text-xl" />
+            <div className="flex items-start gap-5">
+              <div className="w-12 h-12 shrink-0 rounded-full bg-[#703818]/30 border border-white/20 flex items-center justify-center shadow-md">
+                <HiOutlineEnvelope className="text-white text-[22px]" />
               </div>
 
-              <div className="leading-relaxed break-all">
+              <div className="leading-relaxed break-all mt-2">
                 cserm@unas.ac.id
               </div>
             </div>
 
             {/* ADDRESS */}
-            <div className="flex items-start gap-4">
-              <div className="w-11 h-11 rounded-full bg-[#703818]/30 border border-white/20 flex items-center justify-center shadow-md">
-                <HiOutlineLocationMarker className="text-white text-xl" />
+            <div className="flex items-start gap-5">
+              <div className="w-12 h-12 shrink-0 rounded-full bg-[#703818]/30 border border-white/20 flex items-center justify-center shadow-md">
+                <HiOutlineMapPin className="text-white text-[22px]" />
               </div>
 
-              <div className="leading-relaxed">
-                Jl. Sawo Manila No.61, RT.14/RW.7,
-                Pejaten Bar. Ps. Minggu,
-                Kota Jakarta Selatan,
+              <div className="leading-relaxed mt-2">
+                Jl. Sawo Manila No.61, RT.14/RW.7,<br />
+                Pejaten Bar. Ps. Minggu,<br />
+                Kota Jakarta Selatan,<br />
                 Daerah Khusus Ibukota Jakarta 12520
               </div>
             </div>

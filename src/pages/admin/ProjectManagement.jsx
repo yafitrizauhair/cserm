@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Swal from "sweetalert2";
 import {
+  getProjectPageSettings,
+  updateProjectPageSettings,
   getProjectsAdmin,
   createProject,
   updateProject,
@@ -36,6 +38,13 @@ const initialBlockForm = {
   is_active: 1,
 };
 
+const initialPageSettingsForm = {
+  page_title: "",
+  page_subtitle: "",
+  external_link: "",
+  file: null,
+};
+
 const normalizeResponseData = (res) => {
   if (!res) return null;
   if (res?.data?.data !== undefined) return res.data.data;
@@ -62,6 +71,13 @@ export default function ProjectManagement() {
   const [projectForm, setProjectForm] = useState(initialProjectForm);
   const [blockForm, setBlockForm] = useState(initialBlockForm);
 
+  const [pageSettingsForm, setPageSettingsForm] = useState(
+    initialPageSettingsForm
+  );
+  const [currentHeroImage, setCurrentHeroImage] = useState("");
+  const [loadingPageSettings, setLoadingPageSettings] = useState(true);
+  const [submittingPageSettings, setSubmittingPageSettings] = useState(false);
+
   const resetProjectForm = () => {
     setEditProjectId(null);
     setCurrentProjectImage("");
@@ -73,6 +89,47 @@ export default function ProjectManagement() {
     setCurrentBlockImage("");
     setBlockForm(initialBlockForm);
   };
+
+  const getPublicProjectUrl = (project) => {
+    if (!project?.id) return "#";
+    return `${window.location.origin}/projects/${project.id}`;
+  };
+
+  const copyProjectLink = async (project) => {
+    try {
+      const url = getPublicProjectUrl(project);
+      await navigator.clipboard.writeText(url);
+      Swal.fire("Berhasil", "Link project berhasil disalin", "success");
+    } catch (err) {
+      Swal.fire("Error", "Gagal menyalin link project", "error");
+    }
+  };
+
+  const loadPageSettings = useCallback(async () => {
+    try {
+      setLoadingPageSettings(true);
+
+      const res = await getProjectPageSettings();
+      const data = normalizeResponseData(res);
+
+      setPageSettingsForm({
+        page_title: data?.page_title || "",
+        page_subtitle: data?.page_subtitle || "",
+        external_link: data?.external_link || "",
+        file: null,
+      });
+
+      setCurrentHeroImage(data?.hero_image || "");
+    } catch (err) {
+      Swal.fire(
+        "Error",
+        err?.response?.data?.message || "Gagal memuat project page settings",
+        "error"
+      );
+    } finally {
+      setLoadingPageSettings(false);
+    }
+  }, []);
 
   const loadProjects = useCallback(
     async (keepSelection = true) => {
@@ -138,12 +195,29 @@ export default function ProjectManagement() {
   }, []);
 
   useEffect(() => {
+    loadPageSettings();
     loadProjects();
-  }, [loadProjects]);
+  }, [loadPageSettings, loadProjects]);
 
   useEffect(() => {
     loadBlocks(selectedProjectId);
   }, [selectedProjectId, loadBlocks]);
+
+  const onPageSettingsChange = (e) => {
+    const { name, value } = e.target;
+    setPageSettingsForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const onHeroFileChange = (e) => {
+    const file = e.target.files?.[0] || null;
+    setPageSettingsForm((prev) => ({
+      ...prev,
+      file,
+    }));
+  };
 
   const onProjectChange = (e) => {
     const { name, value } = e.target;
@@ -177,6 +251,16 @@ export default function ProjectManagement() {
     setBlockForm((prev) => ({ ...prev, file }));
   };
 
+  const heroPreview = useMemo(() => {
+    if (pageSettingsForm.file) {
+      return URL.createObjectURL(pageSettingsForm.file);
+    }
+    if (currentHeroImage) {
+      return resolveProjectImage(currentHeroImage);
+    }
+    return "";
+  }, [pageSettingsForm.file, currentHeroImage]);
+
   const projectPreview = useMemo(() => {
     if (projectForm.file) {
       return URL.createObjectURL(projectForm.file);
@@ -196,6 +280,14 @@ export default function ProjectManagement() {
     }
     return "";
   }, [blockForm.file, currentBlockImage]);
+
+  useEffect(() => {
+    return () => {
+      if (pageSettingsForm.file && heroPreview?.startsWith("blob:")) {
+        URL.revokeObjectURL(heroPreview);
+      }
+    };
+  }, [heroPreview, pageSettingsForm.file]);
 
   useEffect(() => {
     return () => {
@@ -245,6 +337,35 @@ export default function ProjectManagement() {
       is_active: Number(item.is_active ?? 1),
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const onSubmitPageSettings = async (e) => {
+    e.preventDefault();
+
+    try {
+      setSubmittingPageSettings(true);
+
+      const fd = new FormData();
+      fd.append("page_title", pageSettingsForm.page_title.trim());
+      fd.append("page_subtitle", pageSettingsForm.page_subtitle.trim());
+      fd.append("external_link", pageSettingsForm.external_link.trim());
+
+      if (pageSettingsForm.file) {
+        fd.append("image", pageSettingsForm.file);
+      }
+
+      await updateProjectPageSettings(fd);
+      Swal.fire("Berhasil", "Hero berhasil diupdate", "success");
+      await loadPageSettings();
+    } catch (err) {
+      Swal.fire(
+        "Error",
+        err?.response?.data?.message || "Gagal menyimpan hero",
+        "error"
+      );
+    } finally {
+      setSubmittingPageSettings(false);
+    }
   };
 
   const onSubmitProject = async (e) => {
@@ -408,30 +529,151 @@ export default function ProjectManagement() {
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-10">
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-3xl font-extrabold text-[#1e9c2d]">
-              Project Management
-            </h1>
-            <p className="text-gray-500">
-              Kelola project utama dan block kontennya.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => loadProjects(true)}
-            className="px-4 py-2 rounded-xl border hover:bg-gray-50"
-          >
-            Refresh
-          </button>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-extrabold text-[#1e9c2d]">
+            Project Management
+          </h1>
+          <p className="text-gray-500">
+            Hero, project, daftar project, dan blocks dipisah jelas.
+          </p>
         </div>
 
-        <form
-          onSubmit={onSubmitProject}
-          className="bg-white border rounded-2xl p-6 shadow-sm space-y-5"
+        <button
+          type="button"
+          onClick={() => {
+            loadPageSettings();
+            loadProjects(true);
+          }}
+          className="px-4 py-2 rounded-xl border hover:bg-gray-50"
         >
+          Refresh
+        </button>
+      </div>
+
+      {/* HERO SECTION */}
+      <div className="bg-white border rounded-2xl p-6 shadow-sm">
+        <div className="mb-5">
+          <h2 className="text-2xl font-bold text-slate-800">Hero Section</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Ini khusus untuk banner atas halaman project.
+          </p>
+        </div>
+
+        {loadingPageSettings ? (
+          <div className="text-gray-500">Loading hero...</div>
+        ) : (
+          <form
+            onSubmit={onSubmitPageSettings}
+            className="grid md:grid-cols-2 gap-6"
+          >
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Page Title</label>
+                <input
+                  name="page_title"
+                  value={pageSettingsForm.page_title}
+                  onChange={onPageSettingsChange}
+                  className="w-full border rounded-xl px-3 py-2 mt-1"
+                  placeholder="Recent Project"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Page Subtitle</label>
+                <textarea
+                  name="page_subtitle"
+                  value={pageSettingsForm.page_subtitle}
+                  onChange={onPageSettingsChange}
+                  rows={5}
+                  className="w-full border rounded-xl px-3 py-2 mt-1"
+                  placeholder="Masukkan subtitle halaman project"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">
+                  External Link (Hero)
+                </label>
+                <input
+                  name="external_link"
+                  value={pageSettingsForm.external_link}
+                  onChange={onPageSettingsChange}
+                  className="w-full border rounded-xl px-3 py-2 mt-1"
+                  placeholder="https://..."
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Link ini bisa dipakai untuk tombol di hero section.
+                </p>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium">Hero Image</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={onHeroFileChange}
+                  className="w-full border rounded-xl px-3 py-2 mt-1"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={submittingPageSettings}
+                className="bg-[#1e9c2d] text-white px-4 py-2 rounded-xl disabled:opacity-60"
+              >
+                {submittingPageSettings ? "Menyimpan..." : "Simpan Hero"}
+              </button>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Preview Hero</label>
+
+              {heroPreview ? (
+                <div className="mt-3 border rounded-xl overflow-hidden">
+                  <img
+                    src={heroPreview}
+                    alt="Hero Preview"
+                    className="w-full h-[320px] object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="mt-3 border rounded-xl h-[320px] flex items-center justify-center text-gray-400 bg-gray-50">
+                  No Hero Image
+                </div>
+              )}
+
+              {currentHeroImage && !pageSettingsForm.file && (
+                <div className="mt-2 text-xs text-gray-500 break-all">
+                  Hero image saat ini: {currentHeroImage}
+                </div>
+              )}
+
+              {pageSettingsForm.external_link && (
+                <a
+                  href={pageSettingsForm.external_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex mt-3 text-sm text-[#1e9c2d] hover:underline"
+                >
+                  Buka External Link Hero
+                </a>
+              )}
+            </div>
+          </form>
+        )}
+      </div>
+
+      {/* PROJECT FORM */}
+      <div className="bg-white border rounded-2xl p-6 shadow-sm">
+        <div className="mb-5">
+          <h2 className="text-2xl font-bold text-slate-800">Project Form</h2>
+          <p className="text-sm text-gray-500 mt-1">
+            Form ini khusus untuk data project dan project cover image.
+          </p>
+        </div>
+
+        <form onSubmit={onSubmitProject} className="space-y-5">
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div>
@@ -444,15 +686,7 @@ export default function ProjectManagement() {
                 />
               </div>
 
-              <div>
-                <label className="text-sm font-medium">Slug</label>
-                <input
-                  name="slug"
-                  value={projectForm.slug}
-                  onChange={onProjectChange}
-                  className="w-full border rounded-xl px-3 py-2 mt-1"
-                />
-              </div>
+             
 
               <div>
                 <label className="text-sm font-medium">Short Description</label>
@@ -506,6 +740,7 @@ export default function ProjectManagement() {
                   value={projectForm.external_link}
                   onChange={onProjectChange}
                   className="w-full border rounded-xl px-3 py-2 mt-1"
+                  placeholder="https://..."
                 />
               </div>
 
@@ -551,7 +786,7 @@ export default function ProjectManagement() {
             </div>
 
             <div>
-              <label className="text-sm font-medium">Featured Image</label>
+              <label className="text-sm font-medium">Project Cover Image</label>
               <input
                 type="file"
                 accept="image/*"
@@ -607,6 +842,7 @@ export default function ProjectManagement() {
         </form>
       </div>
 
+      {/* DAFTAR PROJECT */}
       <div className="bg-white border rounded-2xl p-6 shadow-sm">
         <h2 className="text-2xl font-bold text-slate-800 mb-5">
           Daftar Project
@@ -618,77 +854,134 @@ export default function ProjectManagement() {
           <div className="text-gray-500">Belum ada project.</div>
         ) : (
           <div className="grid md:grid-cols-2 gap-4">
-            {projects.map((item) => (
-              <div
-                key={item.id}
-                className={`border rounded-2xl p-4 transition ${
-                  selectedProjectId === item.id
-                    ? "border-[#1e9c2d] bg-green-50/40"
-                    : "border-gray-200"
-                }`}
-              >
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="font-bold text-lg text-slate-800">
-                      {item.title}
-                    </div>
-                    <div className="text-sm text-gray-500 mt-1">
-                      {item.location || "-"} • {item.project_date || "-"}
-                    </div>
-                    <div className="text-sm text-gray-700 mt-2 line-clamp-3">
-                      {item.short_description}
-                    </div>
-                    <div className="text-xs text-gray-500 mt-3">
-                      order: {item.order_number} • featured:{" "}
-                      {Number(item.is_featured) ? "yes" : "no"} • status:{" "}
-                      <span
-                        className={
-                          Number(item.is_active)
-                            ? "text-[#1e9c2d]"
-                            : "text-gray-400"
-                        }
-                      >
-                        {Number(item.is_active) ? "active" : "inactive"}
-                      </span>
-                    </div>
-                  </div>
+            {projects.map((item) => {
+              const publicUrl = getPublicProjectUrl(item);
+              const previewImage = item.featured_image
+                ? resolveProjectImage(item.featured_image)
+                : "";
 
-                  <div className="flex flex-col gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedProjectId(item.id)}
-                      className="text-sm text-green-700 hover:underline"
-                    >
-                      Pilih
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onEditProject(item)}
-                      className="text-sm text-blue-600 hover:underline"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onDeleteProject(item.id)}
-                      className="text-sm text-red-600 hover:underline"
-                    >
-                      Hapus
-                    </button>
+              return (
+                <div
+                  key={item.id}
+                  className={`border rounded-2xl p-4 transition ${
+                    selectedProjectId === item.id
+                      ? "border-[#1e9c2d] bg-green-50/40"
+                      : "border-gray-200"
+                  }`}
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="w-28 h-28 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                      {previewImage ? (
+                        <img
+                          src={previewImage}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
+                          No Image
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-lg text-slate-800">
+                        {item.title}
+                      </div>
+
+                      <div className="text-sm text-gray-500 mt-1">
+                        {item.location || "-"} • {item.project_date || "-"}
+                      </div>
+
+                      <div className="text-sm text-gray-700 mt-2 line-clamp-3">
+                        {item.short_description}
+                      </div>
+
+                      <div className="text-xs text-gray-500 mt-3">
+                        order: {item.order_number} • featured:{" "}
+                        {Number(item.is_featured) ? "yes" : "no"} • status:{" "}
+                        <span
+                          className={
+                            Number(item.is_active)
+                              ? "text-[#1e9c2d]"
+                              : "text-gray-400"
+                          }
+                        >
+                          {Number(item.is_active) ? "active" : "inactive"}
+                        </span>
+                      </div>
+
+                      <div className="mt-3">
+                        <div className="text-xs font-medium text-gray-500 mb-1">
+                          Link Project
+                        </div>
+                        <div className="text-xs text-[#1e9c2d] break-all">
+                          {publicUrl}
+                        </div>
+                      </div>
+
+                      {item.external_link && (
+                        <div className="mt-2">
+                          <div className="text-xs font-medium text-gray-500 mb-1">
+                            External Link
+                          </div>
+                          <div className="text-xs text-blue-600 break-all">
+                            {item.external_link}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedProjectId(item.id)}
+                        className="text-sm text-green-700 hover:underline text-left"
+                      >
+                        Pilih
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => onEditProject(item)}
+                        className="text-sm text-blue-600 hover:underline text-left"
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => window.open(publicUrl, "_blank")}
+                        className="text-sm text-purple-700 hover:underline text-left"
+                      >
+                        Lihat Project
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => copyProjectLink(item)}
+                        className="text-sm text-amber-700 hover:underline text-left"
+                      >
+                        Copy Link
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => onDeleteProject(item.id)}
+                        className="text-sm text-red-600 hover:underline text-left"
+                      >
+                        Hapus
+                      </button>
+                    </div>
                   </div>
                 </div>
-
-                {item.featured_image && (
-                  <div className="mt-3 text-xs text-gray-500 break-all">
-                    {item.featured_image}
-                  </div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
+      {/* PROJECT BLOCKS */}
       <div className="bg-white border rounded-2xl p-6 shadow-sm space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Project Blocks</h2>
@@ -787,7 +1080,7 @@ export default function ProjectManagement() {
             </div>
 
             <div>
-              <label className="text-sm font-medium">Upload Image Block</label>
+              <label className="text-sm font-medium">Block Image</label>
               <input
                 type="file"
                 accept="image/*"

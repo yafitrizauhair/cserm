@@ -1,131 +1,202 @@
 const db = require("../config/db");
 
-/* ===============================
-   GET ALL PUBLICATIONS
-================================= */
-exports.getAll = async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const year = req.query.year || null;
+/* =========================
+   HELPERS
+========================= */
+const toInt = (v, def = 1) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : def;
+};
 
+/* =========================
+   GET PUBLICATIONS
+========================= */
+exports.getPublications = async (req, res) => {
+  try {
+    const page = toInt(req.query.page, 1);
+    const limit = toInt(req.query.limit, 10);
     const offset = (page - 1) * limit;
 
-    let whereSql = "";
-    let params = [];
+    const search = req.query.search || "";
+    const sort = req.query.sort || "year_desc";
 
-    if (year) {
-      whereSql = "WHERE year = ?";
-      params.push(year);
-    }
+    let orderBy = "year DESC";
+    if (sort === "year_asc") orderBy = "year ASC";
+    if (sort === "newest") orderBy = "created_at DESC";
+    if (sort === "oldest") orderBy = "created_at ASC";
 
-    // total count
+    const searchQuery = `%${search}%`;
+
+    const [rows] = await db.query(
+      `SELECT *
+       FROM publications
+       WHERE 
+         title LIKE ? OR
+         authors LIKE ? OR
+         journal LIKE ? OR
+         doi LIKE ? OR
+         keywords LIKE ?
+       ORDER BY ${orderBy}
+       LIMIT ? OFFSET ?`,
+      [
+        searchQuery,
+        searchQuery,
+        searchQuery,
+        searchQuery,
+        searchQuery,
+        limit,
+        offset,
+      ]
+    );
+
     const [countRows] = await db.query(
-      `SELECT COUNT(*) as total FROM publications ${whereSql}`,
-      params
+      `SELECT COUNT(*) as total
+       FROM publications
+       WHERE 
+         title LIKE ? OR
+         authors LIKE ? OR
+         journal LIKE ? OR
+         doi LIKE ? OR
+         keywords LIKE ?`,
+      [searchQuery, searchQuery, searchQuery, searchQuery, searchQuery]
     );
 
     const total = countRows[0].total;
-
-    // main data
-    const [rows] = await db.query(
-      `SELECT id, title, authors, year, journal, url, doi, created_at
-       FROM publications
-       ${whereSql}
-       ORDER BY year DESC, created_at DESC
-       LIMIT ? OFFSET ?`,
-      [...params, limit, offset]
-    );
+    const totalPages = Math.ceil(total / limit);
 
     res.json({
       data: rows,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit),
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages,
+      },
     });
   } catch (err) {
-    console.error("GET PUBLICATIONS ERROR:", err);
+    console.error("getPublications error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-/* ===============================
-   CREATE PUBLICATION
-================================= */
-exports.create = async (req, res) => {
+/* =========================
+   CREATE
+========================= */
+exports.createPublication = async (req, res) => {
   try {
-    const { title, authors, year, journal, url, doi } = req.body;
+    const {
+      title,
+      authors,
+      year,
+      journal,
+      url,
+      doi,
+      keywords,
+    } = req.body || {};
 
     if (!title || !authors || !year || !url) {
-      return res.status(400).json({ message: "Field wajib belum diisi" });
+      return res.status(400).json({
+        message: "title, authors, year, url wajib diisi",
+      });
     }
 
     await db.query(
-      `INSERT INTO publications (title, authors, year, journal, url, doi)
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO publications
+       (title, authors, year, journal, url, doi, keywords)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
-        title.trim(),
-        authors.trim(),
-        parseInt(year),
-        journal?.trim() || null,
-        url.trim(),
-        doi?.trim() || null,
+        title,
+        authors, // sudah bisa <b>...</b>
+        year,
+        journal || null,
+        url,
+        doi || null,
+        keywords || null,
       ]
     );
 
     res.json({ message: "Publication berhasil ditambahkan" });
   } catch (err) {
-    console.error("CREATE PUBLICATION ERROR:", err);
+    console.error("createPublication error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-/* ===============================
-   UPDATE PUBLICATION
-================================= */
-exports.update = async (req, res) => {
+/* =========================
+   UPDATE
+========================= */
+exports.updatePublication = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, authors, year, journal, url, doi } = req.body;
+    const {
+      title,
+      authors,
+      year,
+      journal,
+      url,
+      doi,
+      keywords,
+    } = req.body || {};
 
-    if (!title || !authors || !year || !url) {
-      return res.status(400).json({ message: "Field wajib belum diisi" });
+    const [rows] = await db.query(
+      "SELECT id FROM publications WHERE id = ?",
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Publication tidak ditemukan" });
     }
 
     await db.query(
-      `UPDATE publications
-       SET title=?, authors=?, year=?, journal=?, url=?, doi=?
-       WHERE id=?`,
+      `UPDATE publications SET
+        title = ?,
+        authors = ?,
+        year = ?,
+        journal = ?,
+        url = ?,
+        doi = ?,
+        keywords = ?
+       WHERE id = ?`,
       [
-        title.trim(),
-        authors.trim(),
-        parseInt(year),
-        journal?.trim() || null,
-        url.trim(),
-        doi?.trim() || null,
+        title,
+        authors,
+        year,
+        journal || null,
+        url,
+        doi || null,
+        keywords || null,
         id,
       ]
     );
 
     res.json({ message: "Publication berhasil diupdate" });
   } catch (err) {
-    console.error("UPDATE PUBLICATION ERROR:", err);
+    console.error("updatePublication error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
 
-/* ===============================
-   DELETE PUBLICATION
-================================= */
-exports.remove = async (req, res) => {
+/* =========================
+   DELETE
+========================= */
+exports.deletePublication = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await db.query("DELETE FROM publications WHERE id=?", [id]);
+    const [rows] = await db.query(
+      "SELECT id FROM publications WHERE id = ?",
+      [id]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Publication tidak ditemukan" });
+    }
+
+    await db.query("DELETE FROM publications WHERE id = ?", [id]);
 
     res.json({ message: "Publication berhasil dihapus" });
   } catch (err) {
-    console.error("DELETE PUBLICATION ERROR:", err);
+    console.error("deletePublication error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };

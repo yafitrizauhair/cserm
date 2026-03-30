@@ -4,11 +4,12 @@ import {
   createNews,
   updateNews,
   deleteNews,
+  updateNewsStatus, // ✅ TAMBAH INI
 } from "../../services/newsService";
 import Swal from "sweetalert2";
 
 export default function NewsManagement() {
-  const [news, setNews] = useState([]); 
+  const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -17,6 +18,7 @@ export default function NewsManagement() {
     title: "",
     content: "",
     image: null,
+    status: "published", // ✅ TAMBAH
   });
 
   const [fileKey, setFileKey] = useState(Date.now());
@@ -30,7 +32,6 @@ export default function NewsManagement() {
       const res = await getNews();
       setNews(res.data || []);
     } catch (err) {
-      console.error("Gagal mengambil data news:", err);
       Swal.fire("Error", "Gagal mengambil data news", "error");
     } finally {
       setLoading(false);
@@ -42,7 +43,7 @@ export default function NewsManagement() {
   }, []);
 
   // ======================
-  // HANDLE FORM CHANGE
+  // HANDLE FORM
   // ======================
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -65,6 +66,7 @@ export default function NewsManagement() {
       const data = new FormData();
       data.append("title", form.title);
       data.append("content", form.content);
+      data.append("status", form.status); // ✅ TAMBAH
 
       if (form.image) {
         data.append("image", form.image);
@@ -72,28 +74,15 @@ export default function NewsManagement() {
 
       if (editId) {
         await updateNews(editId, data);
-        Swal.fire({
-          icon: "success",
-          title: "Berhasil",
-          text: "News berhasil diupdate",
-          timer: 1500,
-          showConfirmButton: false,
-        });
+        Swal.fire("Berhasil", "News berhasil diupdate", "success");
       } else {
         await createNews(data);
-        Swal.fire({
-          icon: "success",
-          title: "Berhasil",
-          text: "News berhasil ditambahkan",
-          timer: 1500,
-          showConfirmButton: false,
-        });
+        Swal.fire("Berhasil", "News berhasil ditambahkan", "success");
       }
 
       resetForm();
       loadData();
     } catch (err) {
-      console.error("Gagal menyimpan news:", err);
       Swal.fire("Error", "Gagal menyimpan news", "error");
     } finally {
       setSubmitting(false);
@@ -106,23 +95,14 @@ export default function NewsManagement() {
   const handleDelete = async (id) => {
     const result = await Swal.fire({
       title: "Yakin ingin menghapus?",
-      text: "Data news akan dihapus permanen",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Ya, hapus!",
-      cancelButtonText: "Batal",
     });
 
     if (result.isConfirmed) {
-      try {
-        await deleteNews(id);
-        Swal.fire("Terhapus!", "News berhasil dihapus", "success");
-        loadData();
-      } catch (err) {
-        Swal.fire("Error", "Gagal menghapus news", "error");
-      }
+      await deleteNews(id);
+      Swal.fire("Terhapus!", "", "success");
+      loadData();
     }
   };
 
@@ -135,8 +115,30 @@ export default function NewsManagement() {
       title: item.title,
       content: item.content,
       image: null,
+      status: item.status || "published", // ✅ TAMBAH
     });
     setFileKey(Date.now());
+  };
+
+  // ======================
+  // TOGGLE STATUS  
+  // ======================
+  const handleToggleStatus = async (item) => {
+    const newStatus = item.status === "published" ? "draft" : "published";
+
+    try {
+      await updateNewsStatus(item.id, newStatus);
+
+      Swal.fire(
+        "Berhasil",
+        `News diubah ke ${newStatus}`,
+        "success"
+      );
+
+      loadData();
+    } catch {
+      Swal.fire("Error", "Gagal update status", "error");
+    }
   };
 
   // ======================
@@ -147,6 +149,7 @@ export default function NewsManagement() {
       title: "",
       content: "",
       image: null,
+      status: "published",
     });
     setEditId(null);
     setFileKey(Date.now());
@@ -178,6 +181,17 @@ export default function NewsManagement() {
           required
         />
 
+        {/* ✅ DROPDOWN STATUS */}
+        <select
+          name="status"
+          value={form.status}
+          onChange={handleChange}
+          className="w-full border p-2 rounded"
+        >
+          <option value="published">Publish</option>
+          <option value="draft">Draft</option>
+        </select>
+
         <input
           key={fileKey}
           type="file"
@@ -190,13 +204,9 @@ export default function NewsManagement() {
           <button
             type="submit"
             disabled={submitting}
-            className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+            className="bg-blue-600 text-white px-4 py-2 rounded"
           >
-            {submitting
-              ? "Menyimpan..."
-              : editId
-              ? "Update News"
-              : "Tambah News"}
+            {editId ? "Update News" : "Tambah News"}
           </button>
 
           {editId && (
@@ -218,7 +228,18 @@ export default function NewsManagement() {
         news.map((n) => (
           <div key={n.id} className="bg-white p-4 rounded shadow mb-3">
             <h3 className="font-semibold">{n.title}</h3>
-            <p className="text-sm text-gray-600 mt-1">{n.content}</p>
+            <p className="text-sm text-gray-600">{n.content}</p>
+
+            {/* ✅ STATUS BADGE */}
+            <span
+              className={`text-xs px-2 py-1 rounded ${
+                n.status === "draft"
+                  ? "bg-yellow-200 text-yellow-800"
+                  : "bg-green-200 text-green-800"
+              }`}
+            >
+              {n.status}
+            </span>
 
             <div className="flex gap-3 mt-2">
               <button
@@ -227,11 +248,22 @@ export default function NewsManagement() {
               >
                 Edit
               </button>
+
               <button
                 onClick={() => handleDelete(n.id)}
                 className="text-red-600 text-sm"
               >
                 Hapus
+              </button>
+
+              {/*   TOGGLE BUTTON */}
+              <button
+                onClick={() => handleToggleStatus(n)}
+                className="text-yellow-600 text-sm"
+              >
+                {n.status === "published"
+                  ? "Jadikan Draft"
+                  : "Publish"}
               </button>
             </div>
           </div>

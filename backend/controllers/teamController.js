@@ -5,8 +5,8 @@ const normalizeCategory = (category) => {
   return c;
 };
 
-const isValidCategory = (category) => ["management", "staff"].includes(category);
-
+const isValidCategory = (category) =>
+  ["management", "staff", "expert"].includes(category);
 // GET all teams
 exports.getAll = async (req, res) => {
   try {

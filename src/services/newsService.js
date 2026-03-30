@@ -2,8 +2,8 @@ import axios from "axios";
 
 const API = "http://localhost:5000/api/news";
 
-// Ambil token dengan validasi
-const getAuthHeaders = (isMultipart = false) => {
+// ==================== AUTH HEADER ====================
+const getAuthHeaders = (type = "json") => {
   const token = localStorage.getItem("token");
 
   if (!token) {
@@ -13,29 +13,55 @@ const getAuthHeaders = (isMultipart = false) => {
 
   return {
     Authorization: `Bearer ${token}`,
-    ...(isMultipart && { "Content-Type": "multipart/form-data" }),
+
+    //   HANDLE CONTENT TYPE
+    ...(type === "multipart" && {
+      "Content-Type": "multipart/form-data",
+    }),
+
+    ...(type === "json" && {
+      "Content-Type": "application/json",
+    }),
   };
 };
 
 // ==================== GET ====================
+
+//   ADMIN → semua data (draft + published)
 export const getNews = async () => {
   return axios.get(API, {
     headers: getAuthHeaders(),
   });
 };
 
+//   USER → hanya published
+export const getPublishedNews = async () => {
+  return axios.get(`${API}/published`);
+};
+
 // ==================== CREATE ====================
 export const createNews = async (data) => {
   return axios.post(API, data, {
-    headers: getAuthHeaders(true),
+    headers: getAuthHeaders("multipart"),
   });
 };
 
-// ==================== UPDATE ====================
+// ==================== UPDATE FULL ====================
 export const updateNews = async (id, data) => {
   return axios.put(`${API}/${id}`, data, {
-    headers: getAuthHeaders(true),
+    headers: getAuthHeaders("multipart"),
   });
+};
+
+// ====================   UPDATE STATUS ONLY ====================
+export const updateNewsStatus = async (id, status) => {
+  return axios.patch(
+    `${API}/${id}/status`,
+    { status }, //   kirim JSON
+    {
+      headers: getAuthHeaders("json"), //   WAJIB JSON
+    }
+  );
 };
 
 // ==================== DELETE ====================

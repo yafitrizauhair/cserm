@@ -1,39 +1,58 @@
+import { Link } from "react-router-dom";
+
 const Sidebar = ({ role }) => {
   return (
-    <aside className="w-64 bg-slate-900 text-white min-h-screen p-5">
-      <h2 className="text-xl font-bold mb-6">Admin Panel</h2>
+    <div className="bg-dark text-white p-3" style={{ width: 250, minHeight: "100vh" }}>
+      <h5 className="mb-4">Admin Panel</h5>
 
-      {/* DASHBOARD */}
-      <a href={`/${role}/dashboard`} className="block mb-3 hover:text-blue-400">
-        Dashboard
-      </a>
+      <ul className="nav flex-column gap-2">
 
-      {/* ADMIN MENU */}
-      {role === "admin" && (
-        <>
-          <a href="/admin/content" className="block mb-3 hover:text-blue-400">
-            Kelola Konten
-          </a>
-        </>
-      )}
+        <li>
+          <Link className="nav-link text-white" to={`/${role}`}>
+            Dashboard
+          </Link>
+        </li>
 
-      {/* SUPER ADMIN MENU */}
-      {role === "superadmin" && (
-        <>
-          <a href="/superadmin/users" className="block mb-3 hover:text-blue-400">
-            Manajemen User
-          </a>
+        <li>
+          <Link className="nav-link text-white" to="/admin/news">
+            News
+          </Link>
+        </li>
 
-          <a href="/superadmin/admins" className="block mb-3 hover:text-blue-400">
-            Manajemen Admin
-          </a>
+        <li>
+          <Link className="nav-link text-white" to="/admin/projects">
+            Projects
+          </Link>
+        </li>
 
-          <a href="/superadmin/content" className="block mb-3 hover:text-blue-400">
-            Semua Konten
-          </a>
-        </>
-      )}
-    </aside>
+        <li>
+          <Link className="nav-link text-white" to="/admin/team">
+            Team
+          </Link>
+        </li>
+
+        {role === "superadmin" && (
+          <li>
+            <Link className="nav-link text-warning" to="/superadmin/users">
+              User Management
+            </Link>
+          </li>
+        )}
+
+        <li className="mt-4">
+          <button
+            className="btn btn-sm btn-danger w-100"
+            onClick={() => {
+              localStorage.clear();
+              window.location.href = "/login";
+            }}
+          >
+            Logout
+          </button>
+        </li>
+
+      </ul>
+    </div>
   );
 };
 

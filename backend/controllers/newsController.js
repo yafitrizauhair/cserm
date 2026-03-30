@@ -5,9 +5,20 @@ const db = require("../config/db");
 // =====================
 exports.getAll = async (req, res) => {
   try {
-    const [rows] = await db.query(
-      "SELECT * FROM news ORDER BY created_at DESC"
-    );
+    const { status } = req.query;
+
+    let query = "SELECT * FROM news";
+    let values = [];
+
+    // ✅ FILTER STATUS (untuk user)
+    if (status) {
+      query += " WHERE status = ?";
+      values.push(status);
+    }
+
+    query += " ORDER BY created_at DESC";
+
+    const [rows] = await db.query(query, values);
     res.json(rows);
   } catch (err) {
     console.error(err);
@@ -22,7 +33,10 @@ exports.getById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const [rows] = await db.query("SELECT * FROM news WHERE id = ?", [id]);
+    const [rows] = await db.query(
+      "SELECT * FROM news WHERE id = ?",
+      [id]
+    );
 
     if (rows.length === 0) {
       return res.status(404).json({ message: "News tidak ditemukan" });
@@ -40,7 +54,7 @@ exports.getById = async (req, res) => {
 // =====================
 exports.create = async (req, res) => {
   try {
-    const { title, content } = req.body || {};
+    const { title, content, status } = req.body || {};
 
     if (!title || !content) {
       return res.status(400).json({ message: "Title dan content wajib" });
@@ -49,8 +63,8 @@ exports.create = async (req, res) => {
     const image = req.file ? `news/${req.file.filename}` : null;
 
     await db.query(
-      "INSERT INTO news (title, content, image) VALUES (?, ?, ?)",
-      [title, content, image]
+      "INSERT INTO news (title, content, image, status) VALUES (?, ?, ?, ?)",
+      [title, content, image, status || "published"] // ✅ default
     );
 
     res.json({ message: "News berhasil ditambahkan" });
@@ -65,26 +79,44 @@ exports.create = async (req, res) => {
 // =====================
 exports.update = async (req, res) => {
   try {
+    console.log("BODY MASUK:", req.body);
     const { id } = req.params;
-    const { title, content } = req.body || {};
+    const { title, content, status } = req.body || {};
 
     if (!id) {
       return res.status(400).json({ message: "ID tidak ditemukan" });
     }
 
-    if (!title || !content) {
-      return res.status(400).json({ message: "Title dan content wajib" });
+    let query = "UPDATE news SET";
+    let values = [];
+    let updates = [];
+
+    // ✅ fleksibel (tidak wajib semua field)
+    if (title) {
+      updates.push("title=?");
+      values.push(title);
     }
 
-    let query = "UPDATE news SET title=?, content=?";
-    let values = [title, content];
+    if (content) {
+      updates.push("content=?");
+      values.push(content);
+    }
+
+    if (status) {
+      updates.push("status=?");
+      values.push(status);
+    }
 
     if (req.file) {
-      query += ", image=?";
+      updates.push("image=?");
       values.push(`news/${req.file.filename}`);
     }
 
-    query += " WHERE id=?";
+    if (updates.length === 0) {
+      return res.status(400).json({ message: "Tidak ada data yang diupdate" });
+    }
+
+    query += " " + updates.join(", ") + " WHERE id=?";
     values.push(id);
 
     await db.query(query, values);

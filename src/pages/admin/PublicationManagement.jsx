@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Swal from "sweetalert2";
 import {
   getPublications,
@@ -6,13 +6,6 @@ import {
   updatePublication,
   deletePublication,
 } from "../../services/publicationService";
-
-const sortOptions = [
-  { value: "year_desc", label: "Tahun (Terbaru)" },
-  { value: "year_asc", label: "Tahun (Terlama)" },
-  { value: "newest", label: "Dibuat (Terbaru)" },
-  { value: "oldest", label: "Dibuat (Terlama)" },
-];
 
 export default function PublicationManagement() {
   const [rows, setRows] = useState([]);
@@ -27,67 +20,95 @@ export default function PublicationManagement() {
   const limit = 10;
 
   const [editId, setEditId] = useState(null);
+
   const [form, setForm] = useState({
     title: "",
-    authors: "",
+    authors: [{ name: "", bold: false }],
     year: new Date().getFullYear(),
     journal: "",
     url: "",
     doi: "",
-    abstract: "",
+    keywords: "",
   });
 
-  const load = async (nextPage = page) => {
+  // ================= AUTHOR =================
+  const addAuthor = () => {
+    setForm((p) => ({
+      ...p,
+      authors: [...p.authors, { name: "", bold: false }],
+    }));
+  };
+
+  const removeAuthor = (i) => {
+    const updated = [...form.authors];
+    updated.splice(i, 1);
+    setForm((p) => ({ ...p, authors: updated }));
+  };
+
+  const updateAuthor = (i, field, value) => {
+    const updated = [...form.authors];
+    updated[i][field] = value;
+    setForm((p) => ({ ...p, authors: updated }));
+  };
+
+  // ================= LOAD =================
+  const load = useCallback(async (nextPage = 1) => {
     try {
       setLoading(true);
       const res = await getPublications({ page: nextPage, limit, sort, search });
+
       setRows(res.data?.data || []);
       setMeta(res.data?.meta || { page: nextPage, limit, total: 0, totalPages: 1 });
+      setPage(nextPage);
     } catch (err) {
-      Swal.fire("Error", err.response?.data?.message || "Gagal memuat publications", "error");
+      Swal.fire("Error", err.response?.data?.message || "Gagal load", "error");
     } finally {
       setLoading(false);
     }
-  };
+  }, [sort, search]);
 
   useEffect(() => {
     load(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sort]);
+  }, [load]);
 
   useEffect(() => {
-    const t = setTimeout(() => {
-      setPage(1);
-      load(1);
-    }, 350);
+    const t = setTimeout(() => load(1), 400);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search]);
+  }, [search, load]);
 
+  // ================= FORM =================
   const resetForm = () => {
     setEditId(null);
     setForm({
       title: "",
-      authors: "",
+      authors: [{ name: "", bold: false }],
       year: new Date().getFullYear(),
       journal: "",
       url: "",
       doi: "",
-      abstract: "",
+      keywords: "",
     });
   };
 
   const onEdit = (item) => {
     setEditId(item.id);
+
+    const parsedAuthors =
+      item.authors?.split(",").map((a) => ({
+        name: a.replace(/<\/?b>/g, "").trim(),
+        bold: a.includes("<b>"),
+      })) || [{ name: "", bold: false }];
+
     setForm({
       title: item.title || "",
-      authors: item.authors || "",
+      authors: parsedAuthors,
       year: item.year || new Date().getFullYear(),
       journal: item.journal || "",
       url: item.url || "",
       doi: item.doi || "",
-      abstract: item.abstract || "",
+      keywords: item.keywords || "",
     });
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -100,27 +121,28 @@ export default function PublicationManagement() {
 
       const payload = {
         title: form.title,
-        authors: form.authors,
+        authors: form.authors
+          .map((a) => (a.bold ? `<b>${a.name}</b>` : a.name))
+          .join(", "),
         year: form.year,
         journal: form.journal,
         url: form.url,
         doi: form.doi,
-        abstract: form.abstract,
+        keywords: form.keywords,
       };
 
       if (editId) {
         await updatePublication(editId, payload);
-        Swal.fire({ icon: "success", title: "Updated", timer: 1200, showConfirmButton: false });
+        Swal.fire("Success", "Berhasil update", "success");
       } else {
         await createPublication(payload);
-        Swal.fire({ icon: "success", title: "Created", timer: 1200, showConfirmButton: false });
+        Swal.fire("Success", "Berhasil tambah", "success");
       }
 
       resetForm();
-      setPage(1);
-      await load(1);
+      load(1);
     } catch (err) {
-      Swal.fire("Error", err.response?.data?.message || "Gagal menyimpan publication", "error");
+      Swal.fire("Error", "Gagal simpan", "error");
     } finally {
       setSubmitting(false);
     }
@@ -128,226 +150,180 @@ export default function PublicationManagement() {
 
   const onDelete = async (id) => {
     const result = await Swal.fire({
-      title: "Hapus publication?",
-      text: "Data akan dihapus permanen.",
+      title: "Hapus data?",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonText: "Ya, hapus",
-      cancelButtonText: "Batal",
-      confirmButtonColor: "#d33",
     });
+
     if (!result.isConfirmed) return;
 
-    try {
-      await deletePublication(id);
-      Swal.fire({ icon: "success", title: "Terhapus", timer: 1000, showConfirmButton: false });
-
-      const nextPage = Math.min(page, Math.max(meta.totalPages, 1));
-      await load(nextPage);
-    } catch (err) {
-      Swal.fire("Error", err.response?.data?.message || "Gagal hapus publication", "error");
-    }
+    await deletePublication(id);
+    load(page);
   };
 
-  const canPrev = meta.page > 1;
-  const canNext = meta.page < meta.totalPages;
+  const canPrev = page > 1;
+  const canNext = page < meta.totalPages;
 
+  // ================= UI =================
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-7xl mx-auto p-6">
+
+      {/* HEADER */}
       <div className="mb-6">
-        <h1 className="text-2xl font-extrabold text-slate-800">Kelola Publications</h1>
-        <p className="text-slate-500 mt-1">Tambah, edit, hapus publikasi berbasis link.</p>
+        <h1 className="text-3xl font-bold text-slate-800">Publication Management</h1>
+        <p className="text-slate-500">Kelola data publikasi</p>
       </div>
 
       {/* FORM */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
-        <div className="flex items-center justify-between gap-3 mb-4">
-          <div className="font-semibold text-slate-800">
-            {editId ? "Edit Publication" : "Tambah Publication"}
-          </div>
-          {editId && (
-            <button
-              type="button"
-              onClick={resetForm}
-              className="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm"
-            >
-              Batal Edit
-            </button>
-          )}
-        </div>
+      <div className="bg-white rounded-2xl shadow border p-6 mb-6">
+        <form onSubmit={onSubmit} className="grid md:grid-cols-2 gap-4">
 
-        <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-            className="w-full border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-300"
-            placeholder="Judul"
+          <input className="input" placeholder="Judul"
             value={form.title}
-            onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+            onChange={(e) => setForm({ ...form, title: e.target.value })}
             required
-          />
-          <input
-            className="w-full border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-300"
-            placeholder="Authors"
-            value={form.authors}
-            onChange={(e) => setForm((p) => ({ ...p, authors: e.target.value }))}
-            required
-          />
-          <input
-            type="number"
-            className="w-full border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-300"
-            placeholder="Tahun"
-            value={form.year}
-            onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}
-            required
-          />
-          <input
-            className="w-full border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-300"
-            placeholder="Journal (opsional)"
-            value={form.journal}
-            onChange={(e) => setForm((p) => ({ ...p, journal: e.target.value }))}
-          />
-          <input
-            className="md:col-span-2 w-full border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-300"
-            placeholder="URL (https://...)"
-            value={form.url}
-            onChange={(e) => setForm((p) => ({ ...p, url: e.target.value }))}
-            required
-          />
-          <input
-            className="md:col-span-2 w-full border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-300"
-            placeholder="DOI (opsional)"
-            value={form.doi}
-            onChange={(e) => setForm((p) => ({ ...p, doi: e.target.value }))}
-          />
-          <textarea
-            className="md:col-span-2 w-full border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-300"
-            placeholder="Abstract (opsional)"
-            rows={4}
-            value={form.abstract}
-            onChange={(e) => setForm((p) => ({ ...p, abstract: e.target.value }))}
           />
 
-          <div className="md:col-span-2 flex justify-end">
-            <button
-              disabled={submitting}
-              className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-60"
-            >
-              {submitting ? "Menyimpan..." : editId ? "Update" : "Tambah"}
+          {/* AUTHORS */}
+          <div className="md:col-span-2">
+            <label className="text-sm mb-2 block">Authors</label>
+
+            {form.authors.map((a, i) => (
+              <div key={i} className="flex gap-2 mb-2">
+
+                <input
+                  className="input flex-1"
+                  placeholder={`Author ${i + 1}`}
+                  value={a.name}
+                  onChange={(e) => updateAuthor(i, "name", e.target.value)}
+                  required
+                />
+
+                <label className="flex items-center gap-1 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={a.bold}
+                    onChange={(e) => updateAuthor(i, "bold", e.target.checked)}
+                  />
+                  Bold
+                </label>
+
+                {form.authors.length > 1 && (
+                  <button type="button" onClick={() => removeAuthor(i)}>✕</button>
+                )}
+              </div>
+            ))}
+
+            <button type="button" onClick={addAuthor} className="text-blue-600 text-sm">
+              + Tambah Author
             </button>
           </div>
+
+          <input type="number" className="input"
+            value={form.year}
+            onChange={(e) => setForm({ ...form, year: e.target.value })}
+          />
+
+          <textarea
+  className="input md:col-span-2 min-h-[100px] resize-none"
+  placeholder="Journal (contoh: International Journal of Artificial Intelligence)"
+  value={form.journal}
+  onChange={(e) => setForm({ ...form, journal: e.target.value })}
+/>
+
+          <input className="input md:col-span-2" placeholder="URL"
+            value={form.url}
+            onChange={(e) => setForm({ ...form, url: e.target.value })}
+            required
+          />
+
+          <input className="input md:col-span-2" placeholder="DOI"
+            value={form.doi}
+            onChange={(e) => setForm({ ...form, doi: e.target.value })}
+          />
+
+          <textarea className="input md:col-span-2" placeholder="Keywords"
+            value={form.keywords}
+            onChange={(e) => setForm({ ...form, keywords: e.target.value })}
+          />
+
+          <button className="md:col-span-2 bg-slate-900 text-white py-2 rounded-xl">
+            {submitting ? "Loading..." : "Simpan"}
+          </button>
         </form>
       </div>
 
       {/* FILTER */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-4 flex flex-col md:flex-row md:items-center gap-3">
+      <div className="flex gap-3 mb-4">
         <input
-          className="flex-1 border border-slate-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-slate-300"
-          placeholder="Cari judul / authors / journal / doi..."
+          className="input w-full"
+          placeholder="Search..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
+
         <select
+          className="input w-48"
           value={sort}
           onChange={(e) => setSort(e.target.value)}
-          className="border border-slate-200 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-slate-300"
         >
-          {sortOptions.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
+          <option value="year_desc">Terbaru</option>
+          <option value="year_asc">Terlama</option>
         </select>
-        <div className="text-sm text-slate-500">
-          Page {meta.page} / {meta.totalPages} • Total {meta.total}
-        </div>
       </div>
 
       {/* TABLE */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow border overflow-hidden">
         {loading ? (
-          <div className="p-6 text-slate-500">Loading...</div>
+          <p className="p-4 text-gray-500">Loading...</p>
         ) : rows.length === 0 ? (
-          <div className="p-6 text-slate-500">Belum ada publication.</div>
+          <p className="p-4 text-gray-500">Data kosong</p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50 text-slate-600">
-                <tr>
-                  <th className="text-left px-4 py-3">Tahun</th>
-                  <th className="text-left px-4 py-3">Judul</th>
-                  <th className="text-left px-4 py-3">Authors</th>
-                  <th className="text-left px-4 py-3">Link</th>
-                  <th className="text-right px-4 py-3">Aksi</th>
+          <table className="w-full text-sm">
+            <thead className="bg-slate-100 text-left">
+              <tr>
+                <th className="p-3">Judul</th>
+                <th className="p-3">Authors</th>
+                <th className="p-3">Keywords</th>
+                <th className="p-3">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.id} className="border-t hover:bg-slate-50">
+                  <td className="p-3">{r.title}</td>
+                  <td className="p-3" dangerouslySetInnerHTML={{ __html: r.authors }} />
+                  <td className="p-3">{r.keywords}</td>
+                  <td className="p-3 flex gap-2">
+                    <button onClick={() => onEdit(r)} className="text-blue-600">Edit</button>
+                    <button onClick={() => onDelete(r.id)} className="text-red-600">Hapus</button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {rows.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-semibold text-slate-700">{r.year}</td>
-                    <td className="px-4 py-3">
-                      <div className="font-semibold text-slate-800">{r.title}</div>
-                      {r.journal && <div className="text-xs text-slate-500 mt-0.5">{r.journal}</div>}
-                      {r.doi && <div className="text-xs text-slate-500">DOI: {r.doi}</div>}
-                    </td>
-                    <td className="px-4 py-3 text-slate-700">{r.authors}</td>
-                    <td className="px-4 py-3">
-                      <a href={r.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline break-all">
-                        Buka Link
-                      </a>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="inline-flex gap-2">
-                        <button
-                          onClick={() => onEdit(r)}
-                          className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => onDelete(r.id)}
-                          className="px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700"
-                        >
-                          Hapus
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         )}
-
-        {/* PAGINATION */}
-        <div className="p-4 border-t border-slate-200 flex items-center justify-between">
-          <button
-            disabled={!canPrev || loading}
-            onClick={() => {
-              const next = page - 1;
-              setPage(next);
-              load(next);
-            }}
-            className="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 disabled:opacity-50"
-          >
-            Prev
-          </button>
-
-          <div className="text-sm text-slate-500">
-            Page {meta.page} of {meta.totalPages}
-          </div>
-
-          <button
-            disabled={!canNext || loading}
-            onClick={() => {
-              const next = page + 1;
-              setPage(next);
-              load(next);
-            }}
-            className="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
       </div>
+
+      {/* PAGINATION */}
+      <div className="flex justify-between items-center mt-4">
+        <button disabled={!canPrev}
+          onClick={() => load(page - 1)}
+          className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+        >
+          Prev
+        </button>
+
+        <span>Page {page} / {meta.totalPages}</span>
+
+        <button disabled={!canNext}
+          onClick={() => load(page + 1)}
+          className="px-4 py-2 bg-gray-200 rounded disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
+
     </div>
   );
 }

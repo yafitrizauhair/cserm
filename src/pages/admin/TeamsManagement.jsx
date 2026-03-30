@@ -1,5 +1,5 @@
 // src/pages/admin/TeamsManagement.jsx
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Swal from "sweetalert2";
 import {
   getTeams,
@@ -8,7 +8,8 @@ import {
   deleteTeam,
 } from "../../services/teamService";
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 export default function TeamsManagement() {
   const [teams, setTeams] = useState([]);
@@ -20,17 +21,32 @@ export default function TeamsManagement() {
     name: "",
     position: "",
     bio: "",
-    category: "staff", //  TAMBAH: default staff
+    category: "staff",
     photo: null,
   });
 
   const [fileKey, setFileKey] = useState(Date.now());
 
-  const loadData = async () => {
+  // ================= NORMALIZE CATEGORY =================
+  const normalizeCategory = (c) => {
+    const val = (c || "staff").toString().trim().toLowerCase();
+    if (val === "management") return "management";
+    if (val === "expert") return "expert";
+    return "staff";
+  };
+
+  // ================= LOAD DATA (FIX WARNING) =================
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getTeams();
-      setTeams(res.data || []);
+
+      const cleaned = (res.data || []).map((t) => ({
+        ...t,
+        category: normalizeCategory(t.category),
+      }));
+
+      setTeams(cleaned);
     } catch (err) {
       Swal.fire(
         "Error",
@@ -40,15 +56,19 @@ export default function TeamsManagement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
+  // ================= HANDLE INPUT =================
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    setForm((prev) => ({ ...prev, [name]: files ? files[0] : value }));
+    setForm((prev) => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
   };
 
   const resetForm = () => {
@@ -56,7 +76,7 @@ export default function TeamsManagement() {
       name: "",
       position: "",
       bio: "",
-      category: "staff", //  reset balik staff
+      category: "staff",
       photo: null,
     });
     setEditId(null);
@@ -69,12 +89,13 @@ export default function TeamsManagement() {
       name: item.name || "",
       position: item.position || "",
       bio: item.bio || "",
-      category: item.category || "staff", //  ambil category dari DB
+      category: normalizeCategory(item.category),
       photo: null,
     });
     setFileKey(Date.now());
   };
 
+  // ================= SUBMIT =================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -85,7 +106,8 @@ export default function TeamsManagement() {
       data.append("name", form.name);
       data.append("position", form.position);
       data.append("bio", form.bio);
-      data.append("category", form.category); //  KIRIM category
+      data.append("category", normalizeCategory(form.category));
+
       if (form.photo) data.append("photo", form.photo);
 
       if (editId) {
@@ -121,6 +143,7 @@ export default function TeamsManagement() {
     }
   };
 
+  // ================= DELETE =================
   const handleDelete = async (id) => {
     const result = await Swal.fire({
       title: "Hapus team?",
@@ -147,17 +170,22 @@ export default function TeamsManagement() {
     }
   };
 
+  // ================= BADGE =================
   const badgeClass = (category) => {
-    const c = (category || "staff").toLowerCase();
+    const c = normalizeCategory(category);
     if (c === "management") return "bg-green-100 text-green-700";
+    if (c === "expert") return "bg-purple-100 text-purple-700";
     return "bg-blue-100 text-blue-700";
   };
 
   const badgeText = (category) => {
-    const c = (category || "staff").toLowerCase();
-    return c === "management" ? "Management" : "Staff";
+    const c = normalizeCategory(category);
+    if (c === "management") return "Management";
+    if (c === "expert") return "Expert Associate";
+    return "Staff";
   };
 
+  // ================= RENDER =================
   return (
     <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">Kelola Teams</h1>
@@ -172,7 +200,6 @@ export default function TeamsManagement() {
           required
         />
 
-        {/*  DROPDOWN CATEGORY */}
         <select
           name="category"
           value={form.category}
@@ -180,9 +207,9 @@ export default function TeamsManagement() {
           className="w-full border p-2 rounded"
           required
         >
-          <option value="management">C-SERM MANAGEMENT</option>
-          <option value="staff">C-SERM STAFF</option>
-          <option value="other">CSERM Expert Associate</option>
+          <option value="management">CSERM MANAGEMENT</option>
+          <option value="expert">CSERM Expert Associate</option>
+          <option value="staff">CSERM STAFF</option>
         </select>
 
         <input
@@ -217,7 +244,11 @@ export default function TeamsManagement() {
             disabled={submitting}
             className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
           >
-            {submitting ? "Menyimpan..." : editId ? "Update Team" : "Tambah Team"}
+            {submitting
+              ? "Menyimpan..."
+              : editId
+              ? "Update Team"
+              : "Tambah Team"}
           </button>
 
           {editId && (
@@ -255,14 +286,19 @@ export default function TeamsManagement() {
             <div className="flex-1">
               <div className="flex items-center gap-2">
                 <h3 className="font-semibold">{t.name}</h3>
-                {/*  Badge category */}
-                <span className={`text-xs px-2 py-1 rounded ${badgeClass(t.category)}`}>
+                <span
+                  className={`text-xs px-2 py-1 rounded ${badgeClass(
+                    t.category
+                  )}`}
+                >
                   {badgeText(t.category)}
                 </span>
               </div>
 
               <p className="text-sm text-gray-600">{t.position}</p>
-              {t.bio && <p className="text-sm text-gray-500 mt-1">{t.bio}</p>}
+              {t.bio && (
+                <p className="text-sm text-gray-500 mt-1">{t.bio}</p>
+              )}
 
               <div className="flex gap-3 mt-2">
                 <button

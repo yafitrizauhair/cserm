@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import Navbar from "../components/navbar";
 
 import { Instagram, Facebook, Youtube } from "lucide-react";
@@ -433,7 +434,12 @@ export default function HomePage() {
           </li>
           <li>
             <a href="#ourteam" className="hover:text-[#1E9C2D] transition">
-              Our Team
+             CSERM Team
+            </a>
+          </li>
+          <li>
+            <a href="#news" className="hover:text-[#1E9C2D] transition">
+             news
             </a>
           </li>
           <li>
@@ -451,9 +457,8 @@ export default function HomePage() {
         </h3>
 
         <ul className="space-y-2 text-black/80">
-          <li>Universitas Nasional</li>
-          <li>Jakarta, Indonesia</li>
-          <li>Email: info@cserm.org</li>
+          <li>Jl. Sawo Manila No.61, RT.14/RW.7, Pejaten Bar. Ps. Minggu, Kota Jakarta Selatan, Daerah Khusus Ibukota Jakarta 12520</li>
+          <li>Email: cserm@unas.ac.id</li>
         </ul>
       </div>
 

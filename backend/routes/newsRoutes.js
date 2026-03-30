@@ -6,10 +6,21 @@ const { verifyToken, isAdmin } = require("../middleware/authMiddleware");
 const upload = require("../middleware/upload");
 
 /* ========= PUBLIC ========= */
+
+//  Ambil semua (bisa filter ?status=published)
 router.get("/", newsController.getAll);
+
+//  OPTIONAL: endpoint khusus published (clean URL)
+router.get("/published", (req, res) => {
+  req.query.status = "published";
+  newsController.getAll(req, res);
+});
+
 router.get("/:id", newsController.getById);
 
 /* ========= ADMIN ========= */
+
+// CREATE
 router.post(
   "/",
   verifyToken,
@@ -18,6 +29,7 @@ router.post(
   newsController.create
 );
 
+// UPDATE (full edit)
 router.put(
   "/:id",
   verifyToken,
@@ -26,6 +38,15 @@ router.put(
   newsController.update
 );
 
+//  UPDATE STATUS ONLY (SUPER PENTING)
+router.patch(
+  "/:id/status",
+  verifyToken,
+  isAdmin,
+  newsController.update
+);
+
+// DELETE
 router.delete(
   "/:id",
   verifyToken,

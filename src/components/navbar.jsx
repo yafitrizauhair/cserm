@@ -19,8 +19,8 @@ export default function Navbar() {
         {/* Desktop Menu */}
         <ul className="hidden md:flex gap-8 font-medium text-gray-700">
           <li><a href="#profile" className="hover:text-[#1E9C2D] transition-colors">Profile</a></li>
-          <li><a href="#aims" className="hover:text-[#1E9C2D] transition-colors">What We Do</a></li>
-          <li><a href="#publications" className="hover:text-[#1E9C2D] transition-colors">Publication</a></li>
+          <li><a href="#projects" className="hover:text-[#1E9C2D] transition-colors">Project</a></li>
+          <li><a href="#publications" className="hover:text-[#1E9C2D] transition-colors">Publications</a></li>
           <li><a href="#ourteam" className="hover:text-[#1E9C2D] transition-colors">CSERM Team</a></li>
           <li><a href="#news" className="hover:text-[#1E9C2D] transition-colors">News</a></li>
           <li><a href="#contact" className="hover:text-[#1E9C2D] transition-colors">Contact Us</a></li>
@@ -64,7 +64,7 @@ export default function Navbar() {
           >
             <div className="px-6 py-5 space-y-4 text-center">
               <a href="#profile" className="block text-gray-700 hover:text-[#1E9C2D] transition-all">Profile</a>
-              <a href="#aims" className="block text-gray-700 hover:text-[#1E9C2D] transition-all">What We Do?</a>
+              <a href="#projects" className="block text-gray-700 hover:text-[#1E9C2D] transition-all">What We Do?</a>
               <a href="#publications" className="block text-gray-700 hover:text-[#1E9C2D] transition-all">Publication</a>
               <a href="#ourteam" className="block text-gray-700 hover:text-[#1E9C2D] transition-all">Our Team</a>
               <a href="#news" className="block text-gray-700 hover:text-[#1E9C2D] transition-all">News</a>
