@@ -1,230 +1,164 @@
+🌿 C-SERM UNAS Website
 
+🔗 Live Demo: https://csermunas.vercel.app/
 
-//
+Official website of the Centre for Sustainable Energy & Resources Management (C-SERM), Universitas Nasional.
+This platform provides institutional information, research outputs, projects, and news in a modern, responsive, and user-friendly interface.
 
-masukan code ini
+🚀 Features
 
-function doPost(e) {
-  try {
-  
-    const data = JSON.parse(e.postData.contents);
+🏠 Public Website
 
-    const sheet = SpreadsheetApp.openById("ganti dengan id anda")
-      .getSheetByName("Sheet1");
+Fully responsive modern UI (React + Tailwind CSS)
+Hero slider with smooth transitions (Swiper.js)
+Dynamic content sections:
+News & Updates
+Projects
+Publications
+Team Members
+News detail page with sidebar (news portal style)
+Contact page with integrated form
 
-    sheet.appendRow([
-      new Date(),
-      data.name || "",
-      data.email || "",
-      data.subject || "",
-      data.message || "",
-    ]);
+🔐 Admin Panel
 
+Secure authentication system
+Manage content dynamically:
+News (CRUD + image upload + publish/draft)
+Projects
+Publications
+Teams
+Homepage content
+File upload system (stored in backend /uploads)
 
-    const result = {
-      status: "success",
-      message: "Pesan berhasil dikirim!",
-    };
+🧩 Tech Stack
 
-    return ContentService
-      .createTextOutput(JSON.stringify(result))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    const errorResult = {
-      status: "error",
-      message: err.message,
-    };
+Frontend
+Technology	Description
+React.js	Frontend library for building UI
+Tailwind CSS	Utility-first CSS framework
+React Router	Client-side routing
+Swiper.js	Image slider
+Axios / Fetch	API communication
+Backend
+Technology	Description
+Node.js	JavaScript runtime
+Express.js	Backend framework
+Multer	File upload handling
+JWT (optional)	Authentication
 
-    return ContentService
-      .createTextOutput(JSON.stringify(errorResult))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-
-function doOptions() {
-  return ContentService
-    .createTextOutput("")
-    .setMimeType(ContentService.MimeType.TEXT)
-    .setHeader("Access-Control-Allow-Origin", "*")
-    .setHeader("Access-Control-Allow-Methods", "POST, OPTIONS")
-    .setHeader("Access-Control-Allow-Headers", "Content-Type");
-}
-
-
-function doGet() {
-  return ContentService
-    .createTextOutput("Contact API aktif")
-    .setMimeType(ContentService.MimeType.TEXT)
-    .setHeader("Access-Control-Allow-Origin", "*");
-}
-
-
-LINK LIVE DEMO:https://csermunas.vercel.app/
-
-
- 🌿 C-SERM Website
-
-> Centre for Sustainable Energy & Resources Management (C-SERM) — Official website built using React.js & Tailwind CSS.
-> The website aims to present C-SERM’s vision, mission, projects, publications, and contact information in an elegant, modern, and responsive design.
-
----
-
- 🚀 Features
-
- 🏠 Home Page
-
- Smooth hero section slider with overlay and fade transitions (Swiper.js).
- Responsive layout optimized for all devices.
- Clear navigation with anchored sections.
-
- 🎯 Main Sections
-
-1. Profile Section — Introduction and overview of C-SERM.
-2. C-SERM’s Aims — Cards highlighting the main goals and initiatives.
-3. Vision & Mission — Split layout combining text and image with professional styling.
-4. Projects — Dynamic section showcasing current C-SERM projects.
-5. Publications — Research outputs and academic works.
-6. Our Team — Members, researchers, and contributors.
-7. News & Updates — Latest C-SERM activities and announcements.
-8. Contact Us — Integrated contact form and background image section.
-
- 💫 Animations & UI
-
- Swiper Slider with smooth fade and autoplay.
- Overlay effect for readability on hero images.
- Hover animations for cards and buttons.
- Tailwind CSS for modern, responsive styling.
-
----
-
- 🧩 Tech Stack
-
-| Technology                       | Description                                         |
-| -------------------------------- | --------------------------------------------------- |
-| React.js                     | Frontend library used for UI components and routing |
-| Tailwind CSS                 | Utility-first CSS framework for styling             |
-| Swiper.js                    | For responsive and smooth image carousel            |
-| Vite                         | Fast build tool and development server              |
-| Node.js & Express (optional) | Backend API connection (if added later)             |
-
----
-
- 🗂️ Folder Structure
-
-```
-C-SERM/
+📁 Project Structure
+CSERM_UNAS/
 │
-├── src/
-│   ├── assets/               Image & media files
-│   ├── components/           Reusable components (Navbar, Footer, etc.)
-│   ├── pages/                Each main page (HomePage, ProjectPage, etc.)
-│   ├── App.jsx               Main app file
-│   ├── index.jsx             Entry point
-│   └── styles/               Global or custom styles (if any)
+├── backend/                # Backend (Node.js + Express)
+│   ├── config/
+│   ├── controllers/
+│   │   ├── authController.js
+│   │   ├── homepageController.js
+│   │   ├── newsController.js
+│   │   ├── projectController.js
+│   │   ├── publicationController.js
+│   │   └── teamController.js
+│   │
+│   ├── middleware/
+│   │   ├── authMiddleware.js
+│   │   ├── upload.js
+│   │   └── uploadTeam.js
+│   │
+│   ├── routes/
+│   │   ├── authRoutes.js
+│   │   ├── contentRoutes.js
+│   │   ├── homepageRoutes.js
+│   │   ├── newsRoutes.js
+│   │   ├── projectRoutes.js
+│   │   ├── publicationRoutes.js
+│   │   └── teamRoutes.js
+│   │
+│   ├── uploads/            # Uploaded images
+│   └── server.js           # Backend entry point
+│
+├── src/                    # Frontend (React)
+│   ├── assets/
+│   ├── components/
+│   ├── pages/
+│   ├── services/
+│   ├── App.jsx
+│   └── main.jsx
 │
 ├── public/
-│   └── images/               Public-access images
-│
 ├── package.json
-├── tailwind.config.js
-├── postcss.config.js
 └── README.md
-```
 
----
 
- ⚙️ Installation & Setup
+Images are stored in:
 
- 1️⃣ Clone Repository
+/backend/uploads
+✅ Backend Configuration
 
-```bash
-git clone https://github.com/yourusername/cserm-website.git
-cd cserm-website
-```
+Ensure this is added in your server.js:
 
- 2️⃣ Install Dependencies
+import express from "express";
+import path from "path";
 
-```bash
-npm install
-```
+const app = express();
 
- 3️⃣ Run Development Server
+// Serve uploaded images
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+✅ Image URL Example
 
-```bash
-npm run dev
-```
+If stored in database:
 
- 4️⃣ Build for Production
+image: "news-123.jpg"
 
-```bash
-npm run build
-```
+Then accessible via:
 
----
+http://localhost:5000/uploads/news-123.jpg
+✅ Frontend Helper Function
+const getImageUrl = (img) => {
+  if (!img) return "https://via.placeholder.com/400x200";
 
- 🧠 Development Notes
+  if (img.startsWith("http")) return img;
 
- Hero Section Slider:
+  return `http://localhost:5000/uploads/${img}`;
+};
+🧠 Development Notes
+News System
+Supports publish & draft status
+Image upload using Multer
+News detail page with sidebar (latest news)
+UI/UX
+Inspired by modern news portals (Detik / Kompas style)
+Clean layout with responsive grid
+Optimized for all screen sizes
+Performance
+Efficient API calls
+Optimized image rendering
+Tailwind-based styling
 
-   Uses `Swiper` with `EffectFade`, `Autoplay`, and smooth transitions (`speed: 2500`).
-   Includes dark overlay to enhance text readability.
- Responsive Design:
+📸 Preview
+https://csermunas.vercel.app/
 
-   Fully optimized for desktop, tablet, and mobile.
-   Uses Tailwind utility classes for quick adjustments.
- Image Optimization:
-
-   Store hero images in `/src/assets/`.
-   Use `.jpg` or `.webp` for better performance.
-
----
-
- 🌐 Deployment
-
-You can deploy easily using:
-
- Vercel → automatic from GitHub
- Netlify → drag-and-drop build folder
- GitHub Pages → via `npm run build` + deploy script
-
----
-
- 📸 Preview
-
-![Hero Section](./src/assets/herobaru.jpg)
-Smooth fade hero slider with overlay background.
-
----
-
- 💬 Contact
+💬 Contact
 
 Centre for Sustainable Energy & Resources Management (C-SERM)
-📍 Universitas Nasional, Jakarta, Indonesia
-🌐 [https://cserm.unas.ac.id](https://cserm.unas.ac.id)
-📧 [contact@cserm.unas.ac.id](mailto:contact@cserm.unas.ac.id)
+Universitas Nasional, Jakarta, Indonesia
+🌐 https://cserm.unas.ac.id
 
----
+📧 contact@cserm.unas.ac.id
 
- 📜 License
+📜 License
 
-This project is licensed under the MIT License — feel free to use and modify for educational or institutional purposes.
+This project is licensed under the MIT License.
+You are free to use and modify it for educational or institutional purposes.
 
-
-
-
-NOTE
-
-untuk contact us ganti dibagian
-buka file googleScript.js copy semua ke google apps script
-  
-
-
-setelah itu buka google spreedsheet ganti id cari bagian
-    const sheet = SpreadsheetApp.openById("ganti id google spreedsheet anda")
-      .getSheetByName("Sheet1");
-
-
-
-
-  
+✨ Highlights
+Clean and professional structure
+Fullstack (React + Express)
+Dynamic CMS-style admin panel
+Production-ready architecture
+Optimized for scalability
+🚀 Future Improvements
+SEO optimization (React Helmet)
+Social share buttons (WhatsApp, Facebook)
+Analytics integration (Google Analytics)
+Role-based access control
+Skeleton loading & lazy loading
