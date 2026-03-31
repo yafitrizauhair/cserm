@@ -1,86 +1,82 @@
-
 # 🌿 C-SERM UNAS Website
 
-🔗 **Live Demo:** https://csermunas.vercel.app/
-
-Official website of **Centre for Sustainable Energy & Resources Management (C-SERM)**  
-Built with **React.js (Frontend)** and **Node.js + Express (Backend)**.
+<p align="center">
+  <a href="https://csermunas.vercel.app/">
+    <img src="https://img.shields.io/badge/Live-Demo-00C853?style=for-the-badge&logo=vercel&logoColor=white" />
+  </a>
+  <img src="https://img.shields.io/badge/Frontend-React.js-61DAFB?style=for-the-badge&logo=react&logoColor=black" />
+  <img src="https://img.shields.io/badge/Backend-Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white" />
+  <img src="https://img.shields.io/badge/Style-TailwindCSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" />
+</p>
 
 ---
 
-## 🚀 Features
+## 📌 Overview
 
-### 🏠 Public Website
-- Modern responsive UI (Tailwind CSS)
-- Hero slider with smooth animation (Swiper.js)
-- News & updates system
-- Project showcase
-- Publications page
-- Team members page
-- Contact form
+The **C-SERM UNAS Website** is the official platform of the
+**Centre for Sustainable Energy & Resources Management (C-SERM)** — Universitas Nasional.
+
+This project is built to deliver a **modern, scalable, and responsive web experience**
+for showcasing:
+
+* Institutional activities
+* Research & publications
+* Projects & collaborations
+* Organizational structure
+
+---
+
+## ✨ Features
+
+### 🌐 Public Website
+
+* Fully responsive modern UI
+* Interactive hero slider (Swiper.js)
+* News & updates system
+* Project showcase
+* Publications page
+* Team directory
+* Contact form
 
 ### 🔐 Admin Panel
-- Login authentication
-- Manage:
-  - News
-  - Projects
-  - Publications
-  - Teams
-  - Homepage content
-- Image upload system
+
+* Secure authentication system
+* Full CMS capabilities:
+
+  * Manage News
+  * Manage Projects
+  * Manage Publications
+  * Manage Teams
+  * Edit Homepage Content
+* Image upload & storage system
 
 ---
 
 ## 🧩 Tech Stack
 
-### Frontend
-- React.js
-- React Router
-- Tailwind CSS
-- Axios
-- Swiper.js
-
-### Backend
-- Node.js
-- Express.js
-- Multer (file upload)
-- JWT (optional authentication)
+| Layer    | Technology                                  |
+| -------- | ------------------------------------------- |
+| Frontend | React.js, Tailwind CSS, Axios, React Router |
+| Backend  | Node.js, Express.js                         |
+| Upload   | Multer                                      |
+| Auth     | JWT (optional)                              |
 
 ---
 
 ## 📁 Project Structure
 
-```bash
+```bash id="7h2k3l"
 CSERM_UNAS/
 │
-├── backend/                 # Backend (Node.js + Express)
+├── backend/
 │   ├── config/
 │   ├── controllers/
-│   │   ├── authController.js
-│   │   ├── homepageController.js
-│   │   ├── newsController.js
-│   │   ├── projectController.js
-│   │   ├── publicationController.js
-│   │   └── teamController.js
-│   │
 │   ├── middleware/
-│   │   ├── authMiddleware.js
-│   │   ├── upload.js
-│   │   └── uploadTeam.js
-│   │
 │   ├── routes/
-│   │   ├── authRoutes.js
-│   │   ├── contentRoutes.js
-│   │   ├── homepageRoutes.js
-│   │   ├── newsRoutes.js
-│   │   ├── projectRoutes.js
-│   │   ├── publicationRoutes.js
-│   │   └── teamRoutes.js
-│   │
-│   ├── uploads/             # Uploaded images storage
+│   ├── uploads/
 │   └── server.js
 │
-├── src/                     # Frontend (React)
+├── src/
 │   ├── assets/
 │   ├── components/
 │   ├── pages/
@@ -91,103 +87,81 @@ CSERM_UNAS/
 ├── public/
 ├── package.json
 └── README.md
-````
-
----
-
-## 📸 Image Storage
-
-All uploaded images are stored in:
-
-```
-/backend/uploads
-```
-
-### Important Backend Config
-
-Make sure you add this in `server.js`:
-
-```js
-import express from "express";
-import path from "path";
-
-const app = express();
-
-// Serve images
-app.use("/uploads", express.static(path.join(process.cwd(), "backend/uploads")));
 ```
 
 ---
 
-## ⚙️ Installation
+## 📸 Preview
 
-### 1. Clone Repository
+> 💡 *Tip: Add screenshots of your website here for better presentation*
 
-```bash
-git clone https://github.com/yourusername/cserm.git
-cd cserm
-```
+<img width="1895" height="1022" alt="image" src="https://github.com/user-attachments/assets/f866cdb7-9e80-4401-a46a-ac25a2194ba1" />
+<img width="1910" height="1022" alt="image" src="https://github.com/user-attachments/assets/f1a74810-d7eb-4a34-8663-03577e7d7e99" />
 
 ---
 
-### 2. Install Frontend
 
-```bash
-npm install
-npm run dev
-```
 
 ---
 
-### 3. Install Backend
+## 🌐 Environment Variables
 
-```bash
-cd backend
-npm install
-node server.js
-```
+Create `.env` file in frontend:
 
----
-
-## 🌐 API Base URL
-
-```env
+```env id="3msl0s"
 REACT_APP_API_URL=http://localhost:5000
 ```
 
 ---
 
-## 🚀 Deployment
+## 🖼️ Image Handling
 
-* **Frontend:** Vercel / Netlify
-* **Backend:** Railway / Render / VPS
+* Upload directory:
+
+```bash id="1ksl20"
+/backend/uploads
+```
+
+* Access images:
+
+```bash id="1asx09"
+http://localhost:5000/uploads/your-image.jpg
+```
+
+* Enable static serving in backend:
+
+```js id="10sll2"
+app.use("/uploads", express.static("backend/uploads"));
+```
 
 ---
 
-## 🧠 Notes
 
-* Images must use correct URL:
+✔ Ensure:
 
-  ```js
-  http://localhost:5000/uploads/your-image.jpg
-  ```
-* Always check:
-
-  * backend running
-  * uploads folder exists
-  * correct API URL
+* API URL is correct
+* Backend is publicly accessible
+* Uploads folder is configured
 
 ---
 
 ## 📬 Contact
 
-**C-SERM UNAS**
+**Centre for Sustainable Energy & Resources Management (C-SERM)**
 Universitas Nasional, Jakarta
-🌐 [https://cserm.unas.ac.id](https://cserm.unas.ac.id)
+
+🌐 https://cserm.unas.ac.id
 📧 [contact@cserm.unas.ac.id](mailto:contact@cserm.unas.ac.id)
 
 ---
 
 ## 📜 License
 
-MIT License — free to use for educational purposes.
+MIT License — free for educational and non-commercial use.
+
+---
+
+## ⭐ Support
+
+If you like this project, feel free to **star ⭐ the repository**
+and contribute to further development!
