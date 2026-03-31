@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import contactImage from "../assets/contactus.jpeg";
+import contactImage from "../assets/contactUs.webp";
 
 import {
   HiOutlinePhone,
@@ -8,13 +8,12 @@ import {
 } from "react-icons/hi2";
 
 const ContactUsPage = () => {
-
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     subject: "",
     message: "",
-    website: "" // honeypot anti spam
+    website: ""
   });
 
   const [formLoadedAt, setFormLoadedAt] = useState(Date.now());
@@ -27,16 +26,11 @@ const ContactUsPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     setLoading(true);
     setStatusMessage(null);
 
@@ -63,7 +57,7 @@ const ContactUsPage = () => {
       if (result.status === "success") {
         setStatusMessage({
           type: "success",
-          text: "✅ Pesan berhasil dikirim! Terima kasih sudah menghubungi kami."
+          text: "✅ Pesan berhasil dikirim!"
         });
 
         setFormData({
@@ -81,15 +75,11 @@ const ContactUsPage = () => {
           text: result.message || "❌ Gagal mengirim pesan."
         });
       }
-
     } catch (error) {
-      console.error(error);
-
       setStatusMessage({
         type: "error",
-        text: "⚠️ Terjadi kesalahan saat mengirim pesan."
+        text: "⚠️ Terjadi kesalahan."
       });
-
     } finally {
       setLoading(false);
     }
@@ -97,81 +87,63 @@ const ContactUsPage = () => {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center bg-cover bg-center relative"
+      className="min-h-screen flex items-center justify-center bg-cover bg-center relative"
       style={{ backgroundImage: `url(${contactImage})` }}
     >
+      {/* overlay sangat tipis */}
+      <div className="absolute inset-0 bg-black/5"></div>
 
-      {/* overlay */}
-      <div className="absolute inset-0 bg-black/30"></div>
-
-      {/* container */}
-      <div className="relative z-10 w-[90%] md:w-[80%] lg:w-[75%] mt-60 mb-20 flex flex-col md:flex-row rounded-3xl overflow-hidden shadow-2xl">
+      <div className="relative z-10 w-[90%] md:w-[80%] lg:w-[75%] flex flex-col md:flex-row rounded-3xl overflow-hidden">
 
         {/* LEFT SIDE */}
-        <div className="bg-[#d9cbba]/80 backdrop-blur-md text-white w-full md:w-2/5 p-8 md:p-10 flex flex-col justify-center rounded-l-3xl">
-
+        <div className="bg-white/10 backdrop-blur-md text-white w-full md:w-2/5 p-8 flex flex-col justify-center">
           <h3 className="text-xl font-semibold mb-8">
             Contact Information
           </h3>
 
-          <div className="space-y-7 text-sm md:text-base">
+          <div className="space-y-6 text-sm md:text-base">
 
-            {/* PHONE */}
-            <div className="flex items-start gap-5">
-              <div className="w-12 h-12 shrink-0 rounded-full bg-[#703818]/30 border border-white/20 flex items-center justify-center shadow-md">
-                <HiOutlinePhone className="text-white text-[22px]" />
+            <div className="flex items-start gap-4">
+              <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center">
+                <HiOutlinePhone className="text-white text-[20px]" />
               </div>
-
-              <div className="leading-relaxed mt-2">
-                +62 (21) 788 48 152
-              </div>
+              <div>+62 (21) 788 48 152</div>
             </div>
 
-            {/* EMAIL */}
-            <div className="flex items-start gap-5">
-              <div className="w-12 h-12 shrink-0 rounded-full bg-[#703818]/30 border border-white/20 flex items-center justify-center shadow-md">
-                <HiOutlineEnvelope className="text-white text-[22px]" />
+            <div className="flex items-start gap-4">
+              <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center">
+                <HiOutlineEnvelope className="text-white text-[20px]" />
               </div>
-
-              <div className="leading-relaxed break-all mt-2">
-                cserm@unas.ac.id
-              </div>
+              <div>cserm@unas.ac.id</div>
             </div>
 
-            {/* ADDRESS */}
-            <div className="flex items-start gap-5">
-              <div className="w-12 h-12 shrink-0 rounded-full bg-[#703818]/30 border border-white/20 flex items-center justify-center shadow-md">
-                <HiOutlineMapPin className="text-white text-[22px]" />
+            <div className="flex items-start gap-4">
+              <div className="w-11 h-11 rounded-full bg-white/20 flex items-center justify-center">
+                <HiOutlineMapPin className="text-white text-[20px]" />
               </div>
-
-              <div className="leading-relaxed mt-2">
-                Jl. Sawo Manila No.61, RT.14/RW.7,<br />
-                Pejaten Bar. Ps. Minggu,<br />
-                Kota Jakarta Selatan,<br />
-                Daerah Khusus Ibukota Jakarta 12520
+              <div className="leading-relaxed">
+                Jl. Sawo Manila No.61<br />
+                Jakarta Selatan
               </div>
             </div>
 
           </div>
         </div>
 
-        {/* RIGHT SIDE FORM */}
-        <div
-          className="w-full md:w-3/5 p-8 md:p-10 rounded-r-3xl text-gray-900"
-          style={{
-            background: "rgba(255,255,255,0.15)",
-            backdropFilter: "blur(15px)",
-            border: "1px solid rgba(255,255,255,0.2)"
-          }}
-        >
+        {/* RIGHT SIDE GLASS */}
+        <div className="relative w-full md:w-3/5 p-8 md:p-10 text-white glass-card overflow-hidden">
 
-          <h3 className="text-2xl font-bold mb-6 text-white drop-shadow-lg">
+          {/* highlight kaca */}
+          <div className="absolute inset-0 pointer-events-none">
+            <div className="absolute top-0 left-0 w-full h-1/3 bg-gradient-to-b from-white/15 to-transparent"></div>
+          </div>
+
+          <h3 className="text-2xl font-bold mb-6 drop-shadow-md relative z-10">
             Contact Us
           </h3>
 
-          <form onSubmit={handleSubmit} className="space-y-5 text-white">
+          <form onSubmit={handleSubmit} className="space-y-5 relative z-10">
 
-            {/* honeypot */}
             <input
               type="text"
               name="website"
@@ -182,88 +154,66 @@ const ContactUsPage = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Your Name
-                </label>
-
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-md border border-white/40 px-4 py-2 bg-white/10 text-white"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Your Email
-                </label>
-
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full rounded-md border border-white/40 px-4 py-2 bg-white/10 text-white"
-                />
-              </div>
-
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Subject
-              </label>
-
               <input
                 type="text"
-                name="subject"
-                value={formData.subject}
+                name="name"
+                placeholder="Your Name"
+                value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full rounded-md border border-white/40 px-4 py-2 bg-white/10 text-white"
+                className="glass-input"
               />
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Message
-              </label>
-
-              <textarea
-                name="message"
-                value={formData.message}
+              <input
+                type="email"
+                name="email"
+                placeholder="Your Email"
+                value={formData.email}
                 onChange={handleChange}
-                rows={5}
                 required
-                className="w-full rounded-md border border-white/40 px-4 py-2 bg-white/10 text-white resize-none"
+                className="glass-input"
               />
+
             </div>
 
-            <div className="flex justify-start">
-              <button
-                type="submit"
-                disabled={loading}
-                className={`${
-                  loading
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-[#703818] hover:bg-[#5c2f14]"
-                } text-white font-semibold text-lg px-10 py-2.5 rounded-lg shadow-md transition-all`}
-              >
-                {loading ? "Mengirim..." : "Submit"}
-              </button>
-            </div>
+            <input
+              type="text"
+              name="subject"
+              placeholder="Subject"
+              value={formData.subject}
+              onChange={handleChange}
+              required
+              className="glass-input"
+            />
+
+            <textarea
+              name="message"
+              rows={5}
+              placeholder="Your Message..."
+              value={formData.message}
+              onChange={handleChange}
+              required
+              className="glass-input resize-none"
+            />
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full py-3 rounded-lg font-semibold transition ${
+                loading
+                  ? "bg-gray-400"
+                  : "bg-[#703818] hover:bg-[#5c2f14]"
+              }`}
+            >
+              {loading ? "Mengirim..." : "Kirim Pesan"}
+            </button>
 
             {statusMessage && (
               <div
-                className={`mt-3 text-sm font-medium ${
+                className={`text-sm ${
                   statusMessage.type === "success"
-                    ? "text-green-400"
-                    : "text-red-400"
+                    ? "text-green-300"
+                    : "text-red-300"
                 }`}
               >
                 {statusMessage.text}
@@ -271,11 +221,51 @@ const ContactUsPage = () => {
             )}
 
           </form>
-
         </div>
-
       </div>
 
+      {/* GLASS STYLE BALANCED */}
+      <style>
+        {`
+          .glass-card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+
+            box-shadow:
+              0 10px 30px rgba(0,0,0,0.25),
+              inset 0 1px 0 rgba(255,255,255,0.25);
+          }
+
+          .glass-input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+
+            border: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.05);
+
+            backdrop-filter: blur(6px);
+            -webki  t-backdrop-filter: blur(6px);
+
+            color: white;
+            outline: none;
+            transition: 0.3s;
+          }
+
+          .glass-input::placeholder {
+            color: rgba(255,255,255,0.6);
+          }
+
+          .glass-input:focus {
+            border: 1px solid rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.1);
+          }
+        `}
+      </style>
     </div>
   );
 };
