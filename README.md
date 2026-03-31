@@ -1,56 +1,59 @@
-🌿 C-SERM UNAS Website
 
-🔗 Live Demo: https://csermunas.vercel.app/
+# 🌿 C-SERM UNAS Website
 
-Official website of the Centre for Sustainable Energy & Resources Management (C-SERM), Universitas Nasional.
-This platform provides institutional information, research outputs, projects, and news in a modern, responsive, and user-friendly interface.
+🔗 **Live Demo:** https://csermunas.vercel.app/
 
-🚀 Features
+Official website of **Centre for Sustainable Energy & Resources Management (C-SERM)**  
+Built with **React.js (Frontend)** and **Node.js + Express (Backend)**.
 
-🏠 Public Website
+---
 
-Fully responsive modern UI (React + Tailwind CSS)
-Hero slider with smooth transitions (Swiper.js)
-Dynamic content sections:
-News & Updates
-Projects
-Publications
-Team Members
-News detail page with sidebar (news portal style)
-Contact page with integrated form
+## 🚀 Features
 
-🔐 Admin Panel
+### 🏠 Public Website
+- Modern responsive UI (Tailwind CSS)
+- Hero slider with smooth animation (Swiper.js)
+- News & updates system
+- Project showcase
+- Publications page
+- Team members page
+- Contact form
 
-Secure authentication system
-Manage content dynamically:
-News (CRUD + image upload + publish/draft)
-Projects
-Publications
-Teams
-Homepage content
-File upload system (stored in backend /uploads)
+### 🔐 Admin Panel
+- Login authentication
+- Manage:
+  - News
+  - Projects
+  - Publications
+  - Teams
+  - Homepage content
+- Image upload system
 
-🧩 Tech Stack
+---
 
-Frontend
-Technology	Description
-React.js	Frontend library for building UI
-Tailwind CSS	Utility-first CSS framework
-React Router	Client-side routing
-Swiper.js	Image slider
-Axios / Fetch	API communication
-Backend
-Technology	Description
-Node.js	JavaScript runtime
-Express.js	Backend framework
-Multer	File upload handling
-JWT (optional)	Authentication
+## 🧩 Tech Stack
 
-📁 Project Structure
+### Frontend
+- React.js
+- React Router
+- Tailwind CSS
+- Axios
+- Swiper.js
 
+### Backend
+- Node.js
+- Express.js
+- Multer (file upload)
+- JWT (optional authentication)
+
+---
+
+## 📁 Project Structure
+
+```bash
 CSERM_UNAS/
 │
-├── backend/                # Backend (Node.js + Express)
+├── backend/                 # Backend (Node.js + Express)
 │   ├── config/
 │   ├── controllers/
 │   │   ├── authController.js
@@ -74,10 +77,10 @@ CSERM_UNAS/
 │   │   ├── publicationRoutes.js
 │   │   └── teamRoutes.js
 │   │
-│   ├── uploads/            # Uploaded images
-│   └── server.js           # Backend entry point
+│   ├── uploads/             # Uploaded images storage
+│   └── server.js
 │
-├── src/                    # Frontend (React)
+├── src/                     # Frontend (React)
 │   ├── assets/
 │   ├── components/
 │   ├── pages/
@@ -88,78 +91,103 @@ CSERM_UNAS/
 ├── public/
 ├── package.json
 └── README.md
+````
 
+---
 
-Images are stored in:
+## 📸 Image Storage
 
+All uploaded images are stored in:
+
+```
 /backend/uploads
-✅ Backend Configuration
+```
 
-Ensure this is added in your server.js:
+### Important Backend Config
 
+Make sure you add this in `server.js`:
+
+```js
 import express from "express";
 import path from "path";
 
 const app = express();
 
-// Serve uploaded images
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
-✅ Image URL Example
+// Serve images
+app.use("/uploads", express.static(path.join(process.cwd(), "backend/uploads")));
+```
 
-If stored in database:
+---
 
-image: "news-123.jpg"
+## ⚙️ Installation
 
-Then accessible via:
+### 1. Clone Repository
 
-http://localhost:5000/uploads/news-123.jpg
-✅ Frontend Helper Function
-const getImageUrl = (img) => {
-  if (!img) return "https://via.placeholder.com/400x200";
+```bash
+git clone https://github.com/yourusername/cserm.git
+cd cserm
+```
 
-  if (img.startsWith("http")) return img;
+---
 
-  return `http://localhost:5000/uploads/${img}`;
-};
-🧠 Development Notes
-News System
-Supports publish & draft status
-Image upload using Multer
-News detail page with sidebar (latest news)
-UI/UX
-Inspired by modern news portals (Detik / Kompas style)
-Clean layout with responsive grid
-Optimized for all screen sizes
-Performance
-Efficient API calls
-Optimized image rendering
-Tailwind-based styling
+### 2. Install Frontend
 
-📸 Preview
-https://csermunas.vercel.app/
+```bash
+npm install
+npm run dev
+```
 
-💬 Contact
+---
 
-Centre for Sustainable Energy & Resources Management (C-SERM)
-Universitas Nasional, Jakarta, Indonesia
-🌐 https://cserm.unas.ac.id
+### 3. Install Backend
 
-📧 contact@cserm.unas.ac.id
+```bash
+cd backend
+npm install
+node server.js
+```
 
-📜 License
+---
 
-This project is licensed under the MIT License.
-You are free to use and modify it for educational or institutional purposes.
+## 🌐 API Base URL
 
-✨ Highlights
-Clean and professional structure
-Fullstack (React + Express)
-Dynamic CMS-style admin panel
-Production-ready architecture
-Optimized for scalability
-🚀 Future Improvements
-SEO optimization (React Helmet)
-Social share buttons (WhatsApp, Facebook)
-Analytics integration (Google Analytics)
-Role-based access control
-Skeleton loading & lazy loading
+```env
+REACT_APP_API_URL=http://localhost:5000
+```
+
+---
+
+## 🚀 Deployment
+
+* **Frontend:** Vercel / Netlify
+* **Backend:** Railway / Render / VPS
+
+---
+
+## 🧠 Notes
+
+* Images must use correct URL:
+
+  ```js
+  http://localhost:5000/uploads/your-image.jpg
+  ```
+* Always check:
+
+  * backend running
+  * uploads folder exists
+  * correct API URL
+
+---
+
+## 📬 Contact
+
+**C-SERM UNAS**
+Universitas Nasional, Jakarta
+🌐 [https://cserm.unas.ac.id](https://cserm.unas.ac.id)
+📧 [contact@cserm.unas.ac.id](mailto:contact@cserm.unas.ac.id)
+
+---
+
+## 📜 License
+
+MIT License — free to use for educational purposes.
