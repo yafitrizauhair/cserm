@@ -1,3 +1,7 @@
+Berikut versi README kamu yang sudah **lebih clean, profesional, dan rapi saat di-copy ke GitHub** (spacing, struktur, dan wording sudah diperbaiki 👇)
+
+---
+
 # 🌿 C-SERM UNAS Website
 
 <p align="center">
@@ -9,15 +13,19 @@
   <img src="https://img.shields.io/badge/Style-TailwindCSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" />
 </p>
 
+<p align="center">
+  🌐 <strong>Live Demo:</strong><br/>
+  <a href="https://csermunas.vercel.app/">https://csermunas.vercel.app/</a>
+</p>
+
 ---
 
 ## 📌 Overview
 
-The **C-SERM UNAS Website** is the official platform of the
+The **C-SERM UNAS Website** is the official digital platform of
 **Centre for Sustainable Energy & Resources Management (C-SERM)** — Universitas Nasional.
 
-This project is built to deliver a **modern, scalable, and responsive web experience**
-for showcasing:
+This project is designed to provide a **modern, scalable, and responsive web experience** for presenting:
 
 * Institutional activities
 * Research & publications
@@ -65,7 +73,7 @@ for showcasing:
 
 ## 📁 Project Structure
 
-```bash id="7h2k3l"
+```bash
 CSERM_UNAS/
 │
 ├── backend/
@@ -93,23 +101,23 @@ CSERM_UNAS/
 
 ## 📸 Preview
 
-> 💡 *Tip: Add screenshots of your website here for better presentation*
+> 💡 *Tip: Add more screenshots to improve project presentation*
 
-<img width="1895" height="1022" alt="image" src="https://github.com/user-attachments/assets/f866cdb7-9e80-4401-a46a-ac25a2194ba1" />
-<img width="1910" height="1022" alt="image" src="https://github.com/user-attachments/assets/f1a74810-d7eb-4a34-8663-03577e7d7e99" />
+<p align="center">
+  <img width="90%" src="https://github.com/user-attachments/assets/f866cdb7-9e80-4401-a46a-ac25a2194ba1" />
+</p>
 
----
- <img src="https://img.shields.io/badge/Live-Demo-00C853?style=for-the-badge&logo=vercel&logoColor=white" />
-
-[  https://csermunas.vercel.app/](https://cserm-10oqt0b8u-yafitrizauhairs-projects.vercel.app/)
+<p align="center">
+  <img width="90%" src="https://github.com/user-attachments/assets/f1a74810-d7eb-4a34-8663-03577e7d7e99" />
+</p>
 
 ---
 
 ## 🌐 Environment Variables
 
-Create `.env` file in frontend:
+Create a `.env` file in the frontend directory:
 
-```env id="3msl0s"
+```env
 REACT_APP_API_URL=http://localhost:5000
 ```
 
@@ -119,30 +127,31 @@ REACT_APP_API_URL=http://localhost:5000
 
 * Upload directory:
 
-```bash id="1ksl20"
+```bash
 /backend/uploads
 ```
 
 * Access images:
 
-```bash id="1asx09"
+```bash
 http://localhost:5000/uploads/your-image.jpg
 ```
 
 * Enable static serving in backend:
 
-```js id="10sll2"
+```js
 app.use("/uploads", express.static("backend/uploads"));
 ```
 
 ---
 
+## ⚙️ Deployment Notes
 
-✔ Ensure:
+✔ Ensure the following before deployment:
 
-* API URL is correct
-* Backend is publicly accessible
-* Uploads folder is configured
+* API URL is correctly configured
+* Backend server is publicly accessible
+* Uploads directory is properly exposed
 
 ---
 
@@ -151,7 +160,7 @@ app.use("/uploads", express.static("backend/uploads"));
 **Centre for Sustainable Energy & Resources Management (C-SERM)**
 Universitas Nasional, Jakarta
 
-🌐 https://cserm.unas.ac.id
+🌐 [https://cserm.unas.ac.id](https://cserm.unas.ac.id)
 📧 [contact@cserm.unas.ac.id](mailto:contact@cserm.unas.ac.id)
 
 ---
@@ -164,5 +173,6 @@ MIT License — free for educational and non-commercial use.
 
 ## ⭐ Support
 
-If you like this project, feel free to **star ⭐ the repository**
-and contribute to further development!
+If you find this project helpful, consider giving it a ⭐ on GitHub
+and contributing to its development!
+
