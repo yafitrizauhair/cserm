@@ -1,6 +1,4 @@
-Berikut versi README kamu yang sudah **lebih clean, profesional, dan rapi saat di-copy ke GitHub** (spacing, struktur, dan wording sudah diperbaiki 👇)
 
----
 
 # 🌿 C-SERM UNAS Website
 
@@ -70,6 +68,61 @@ This project is designed to provide a **modern, scalable, and responsive web exp
 | Auth     | JWT (optional)                              |
 
 ---
+
+
+
+## 🏗️ Architecture Diagram
+
+```mermaid
+flowchart LR
+    A[User Browser] -->|HTTP Request| B[Frontend - React.js]
+    B -->|API Call (Axios)| C[Backend - Node.js / Express]
+    C --> D[(MySQL Database)]
+    C --> E[Uploads Storage]
+
+    subgraph Frontend
+        B
+    end
+
+    subgraph Backend
+        C
+        D
+        E
+    end
+```
+
+---
+
+## 🔄 Data Flow
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend (React)
+    participant B as Backend (Express)
+    participant DB as Database (MySQL)
+
+    U->>F: Interact (View / Submit Data)
+    F->>B: API Request
+    B->>DB: Query / Insert Data
+    DB-->>B: Return Result
+    B-->>F: JSON Response
+    F-->>U: Render UI
+```
+
+---
+
+## 🚀 Deployment Architecture (Production)
+
+```mermaid
+flowchart LR
+    A[Client Browser] --> B[Vercel Frontend]
+    B --> C[VPS Backend API]
+    C --> D[(MySQL Database)]
+```
+
+
+
 
 ## 📁 Project Structure
 
