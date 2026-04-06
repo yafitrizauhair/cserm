@@ -95,30 +95,16 @@ flowchart LR
 
 ## 🔄 Data Flow
 
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant F as Frontend (React)
-    participant B as Backend (Express)
-    participant DB as Database (MySQL)
-
-    U->>F: Interact (View / Submit Data)
-    F->>B: API Request
-    B->>DB: Query / Insert Data
-    DB-->>B: Return Result
-    B-->>F: JSON Response
-    F-->>U: Render UI
-```
-
 ---
-
-## 🚀 Deployment Architecture (Production)
 
 ```mermaid
 flowchart LR
-    A[Client Browser] --> B[Vercel Frontend]
-    B --> C[VPS Backend API]
-    C --> D[(MySQL Database)]
+    A[Client] --> B[React Frontend]
+    B --> C[Node Backend]
+    C --> D[(MySQL)]
+    C --> E[File Storage]
+
+
 ```
 
 
