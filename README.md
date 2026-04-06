@@ -1,5 +1,4 @@
 
-
 # 🌿 C-SERM UNAS Website
 
 <p align="center">
@@ -23,7 +22,7 @@
 The **C-SERM UNAS Website** is the official digital platform of
 **Centre for Sustainable Energy & Resources Management (C-SERM)** — Universitas Nasional.
 
-This project is designed to provide a **modern, scalable, and responsive web experience** for presenting:
+This project delivers a **modern, scalable, and responsive web experience** for showcasing:
 
 * Institutional activities
 * Research & publications
@@ -69,14 +68,12 @@ This project is designed to provide a **modern, scalable, and responsive web exp
 
 ---
 
-
-
 ## 🏗️ Architecture Diagram
 
 ```mermaid
 flowchart LR
-    A[User Browser] -->|HTTP Request| B[Frontend - React.js]
-    B -->|API Call (Axios)| C[Backend - Node.js / Express]
+    A[User Browser] -->|HTTP Request| B[Frontend React]
+    B -->|API Call Axios| C[Backend Node Express]
     C --> D[(MySQL Database)]
     C --> E[Uploads Storage]
 
@@ -95,20 +92,22 @@ flowchart LR
 
 ## 🔄 Data Flow
 
----
-
 ```mermaid
-flowchart LR
-    A[Client] --> B[React Frontend]
-    B --> C[Node Backend]
-    C --> D[(MySQL)]
-    C --> E[File Storage]
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant B as Backend
+    participant DB as Database
 
-
+    U->>F: Interact (View / Submit)
+    F->>B: API Request
+    B->>DB: Query Data
+    DB-->>B: Result
+    B-->>F: JSON Response
+    F-->>U: Render UI
 ```
 
-
-
+---
 
 ## 📁 Project Structure
 
@@ -212,6 +211,8 @@ MIT License — free for educational and non-commercial use.
 
 ## ⭐ Support
 
-If you find this project helpful, consider giving it a ⭐ on GitHub
-and contributing to its development!
+If you find this project helpful:
+
+* ⭐ Star this repository
+* 🍴 Contribute to development
 
