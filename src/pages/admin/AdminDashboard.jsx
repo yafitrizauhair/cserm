@@ -96,7 +96,7 @@ const DASHBOARD_SECTIONS = [
 export default function AdminDashboard() {
   const navigate = useNavigate();
 
-  // ✅ dibuat stabil supaya tidak warning
+
   const handleLogout = useCallback(() => {
     localStorage.clear();
     navigate("/login");
